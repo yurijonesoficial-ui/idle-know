@@ -50,7 +50,26 @@ Por item:
 - Degrau da hunt `n$e = 1 + (pos−1)·19/(nHunts−1)` (1 a 20).
 - Bolt/Nova de Nightmare ignoram proteções de elemento; só "Dread/Ember Resistance" (Rift Tree) e o Manto reduzem.
 
-## 5. Ainda falta mapear
+## 5. Magias e vocações (achado em 07/11, 2ª conversa)
+- **Vocações** `nb` (âncora `nb={knight:{name:"Knight"`): `hpPerLevel, manaPerLevel, mlFactor, skillFactor, starterWeapon`.
+  knight 15/5/.05/.6 · paladin 10/15/.15/.5 · sorcerer 5/30/.6/.2 · druid 5/30/.6/.2 · monk 13/8/.1/.55.
+- **Magias** `Nn` (âncora `Nn=[{words:"exura"`, ~24 KB): `words, name, vocs, level, mana, cd(ms), type(heal|strike|area), radius, range, targeted, chain{targets,jump}, harmony, dmg(e,t,a,n,o,r)` / `heal(e,t)`.
+  Argumentos: **e = level, t = magic level, a = skill da arma, n = ataque da arma** (o=def, r=armor nos "scu").
+  Ex.: exori mas `zae(e,a,n) = (e/3+(a+n)·3.5)·1.5 → [×0.75, ×1]`; exevo gran mas vis `[e/3.1+t·12, e/3.1+t·16]`; `Ab(x,y)` = máximo de dois intervalos.
+- **Augments de magia** por item (`_$e`): `dmg, cooldownMs, critDmg, critChance, lifeLeech, healing`.
+- **Especializações** (âncora `necromancer:{key:"necromancer"`): passivas por vocação (ex.: Arcanist +10% spell, +20% atk speed, +20% dano recebido; Marksman: a cada 3º ataque +60%).
+- **Rift Tree / roda por vocação** (âncora `voc:"knight",nodes:[`): nós com `per{stat}` e `special{key,value}` (slash, execute, precision = tiro duplo, tactics, avatar, gift_of_life, element_pierce).
+- **Auras** `MY(n)`: crit/critDmg/leech por aura com teto (`TY`).
+
+## 6. O que NÃO está no código do navegador
+O combate roda no **servidor** (Colyseus, `ws://…:2567`). Não aparecem no cliente:
+auto-ataque (como skill/skillFactor/ataque da arma viram dano), velocidade de ataque base,
+como armadura/defesa reduzem o dano recebido, esquiva e a ordem de uso das magias.
+**Plano:** calibrar essas partes com o **Hunt Analyzer** do jogo (Damage, Damage Taken, XP/h, Loot/h,
+"XP raw/h"), medindo builds reais, e usar as fórmulas exatas acima no resto.
+Pista útil: `pDe(monstro)` estima dps do monstro = (média do dano + habilidades·chance) / 2 s e `ecr = effHp^0.4 · dps^0.6`.
+
+## 7. Ainda falta mapear
 - Fórmula do dano do jogador (auto-ataque por arma/varinha, skill/magic level, atkPct, crit, onslaught/fatal, execute, attack speed) e das magias (rotação, cooldowns, `augments`).
 - Dano recebido: armadura/defesa do jogador, absorb, mantra, esquiva (ruse), reflect.
 - XP/h e loot/h: XP dos monstros × expPct × boosts; loot `chance/100000` × lootPct; kill time vs `spawnMs`/`maxAlive`.
