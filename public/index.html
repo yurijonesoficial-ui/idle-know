@@ -97,6 +97,17 @@ label.small{font-size:13px;color:var(--muted);font-weight:600}
 .price-hero>.stat:first-child{border-color:var(--goldLine);background:linear-gradient(var(--goldSoft),var(--goldSoft)),var(--panel)}
 .big{font-size:34px;font-weight:800;color:var(--gold2);font-variant-numeric:tabular-nums;letter-spacing:-.5px;line-height:1.1}
 .soon{opacity:.6}
+details.dobra>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;margin:-18px;padding:18px;border-radius:14px;user-select:none}
+details.dobra>summary::-webkit-details-marker{display:none}
+details.dobra>summary h3{margin:0}
+details.dobra>summary:hover h3{color:var(--gold2)}
+details.dobra>summary .seta{width:20px;height:20px;flex:none;color:var(--muted);transition:transform .2s ease}
+details.dobra[open]>summary .seta{transform:rotate(180deg)}
+details.dobra[open]>summary{margin-bottom:-4px}
+details.dobra:not([open]){padding-bottom:18px}
+.dobra-corpo{margin-top:16px}
+.g2{align-items:start}
+@media (prefers-reduced-motion:reduce){details.dobra>summary .seta{transition:none}}
 .empty{padding:26px;text-align:center;color:var(--muted)}
 footer{max-width:1180px;margin:0 auto;padding:0 20px 34px;color:var(--muted);font-size:12.5px}
 @media (max-width:760px){.barra{flex-wrap:wrap;gap:10px}.logo{order:1}.tema{order:2;margin-left:auto}nav{order:3;flex-basis:100%}h2{font-size:22px}.stat .v{font-size:23px}.big{font-size:28px}.stamp{text-align:left}}
@@ -138,13 +149,13 @@ footer{max-width:1180px;margin:0 auto;padding:0 20px 34px;color:var(--muted);fon
   <p class="lead">O que mais vende, quando comprar e quando vender. Equipamentos ficam de fora daqui porque o preço deles depende demais dos atributos — para eles, use <a href="#quanto-pedir">Quanto pedir</a>.</p>
   <div class="grid g4" id="dicas-stats"></div>
   <div class="grid g2" style="margin-top:14px">
-    <div class="card"><h3>O que tem que saber</h3><div class="grid" id="dicas-tips" style="gap:14px"></div></div>
-    <div class="card"><h3>Mais vendidos (fora equipamentos)</h3><div class="tbl" style="max-height:420px"><table id="dicas-top"></table></div></div>
+    <details class="card dobra" data-k="dicas-tips" open><summary><h3>O que tem que saber</h3><svg class="seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="dobra-corpo"><div class="grid" id="dicas-tips" style="gap:14px"></div></div></details>
+    <details class="card dobra" data-k="dicas-top" open><summary><h3>Mais vendidos (fora equipamentos)</h3><svg class="seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="dobra-corpo"><div class="tbl" style="max-height:420px"><table id="dicas-top"></table></div></div></details>
   </div>
-  <div class="card" style="margin-top:14px"><h3>Melhor horário de cada item</h3>
-    <p class="note" style="margin:-4px 0 10px">Horário em que os leilões <b>terminam</b> (Brasília). Para comprar, mire nos leilões que acabam no horário mais barato. Para vender, escolha a duração do anúncio para ele acabar no horário mais caro. Só entram itens com vendas suficientes em cada horário.</p>
+  <details class="card dobra" data-k="dicas-hora" open style="margin-top:14px"><summary><h3>Melhor horário de cada item</h3><svg class="seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="dobra-corpo">
+    <p class="note" style="margin:0 0 10px">Horário em que os leilões <b>terminam</b> (Brasília). Para comprar, mire nos leilões que acabam no horário mais barato. Para vender, escolha a duração do anúncio para ele acabar no horário mais caro. Só entram itens com vendas suficientes em cada horário.</p>
     <div class="tbl" style="max-height:420px"><table id="dicas-hora"></table></div>
-  </div>
+  </div></details>
 </section>
 
 <!-- QUANTO PEDIR -->
@@ -182,17 +193,16 @@ footer{max-width:1180px;margin:0 auto;padding:0 20px 34px;color:var(--muted);fon
   <p class="lead">Números das vendas fechadas no período. Só informação — as dicas estão na outra aba.</p>
   <div class="grid g4" id="hi-stats"></div>
   <div class="grid g2" style="margin-top:14px">
-    <div class="card"><h3>Cotação do gold — coins por 100kk, por dia</h3><div class="chart" id="hi-gold"></div></div>
-    <div class="card">
-      <div class="ctrl" style="justify-content:space-between;margin-bottom:6px"><h3 style="margin:0">Preço por horário de término</h3><select id="hi-sel"></select></div>
+    <details class="card dobra" data-k="hi-gold" open><summary><h3>Cotação do gold — coins por 100kk, por dia</h3><svg class="seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="dobra-corpo"><div class="chart" id="hi-gold"></div></div></details>
+    <details class="card dobra" data-k="hi-hour" open><summary><h3>Preço por horário de término</h3><svg class="seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="dobra-corpo">
+      <div class="ctrl" style="margin-bottom:6px"><select id="hi-sel" aria-label="Item do gráfico"></select></div>
       <div class="chart" id="hi-hour"></div>
-    </div>
+    </div></details>
   </div>
-  <div class="card" style="margin-top:14px">
-    <div class="ctrl" style="justify-content:space-between"><h3 style="margin:0">Todos os preços de referência</h3>
-      <div style="display:flex;gap:8px;flex-wrap:wrap"><input id="hi-q" placeholder="Buscar item…"><select id="hi-t"><option value="all">Tudo</option><option value="stack">Consumíveis / materiais</option><option value="equip">Equipamentos</option></select></div></div>
+  <details class="card dobra" data-k="hi-tbl" open style="margin-top:14px"><summary><h3>Todos os preços de referência</h3><svg class="seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="dobra-corpo">
+    <div class="ctrl"><input id="hi-q" placeholder="Buscar item…"><select id="hi-t"><option value="all">Tudo</option><option value="stack">Consumíveis / materiais</option><option value="equip">Equipamentos</option></select></div>
     <div class="tbl"><table id="hi-tbl"></table></div>
-  </div>
+  </div></details>
 </section>
 
 <!-- MESES -->
@@ -207,13 +217,12 @@ footer{max-width:1180px;margin:0 auto;padding:0 20px 34px;color:var(--muted);fon
       <div><label class="small">Mês de referência</label><br><select id="me-b"></select></div>
     </div>
     <div class="grid g4" id="me-stats"></div>
-    <div class="card" style="margin-top:14px">
-      <div class="ctrl" style="justify-content:space-between"><h3 style="margin:0">Preço de cada item</h3>
-        <div style="display:flex;gap:8px;flex-wrap:wrap"><input id="me-q" placeholder="Buscar item…"><select id="me-t"><option value="all">Tudo</option><option value="stack">Consumíveis / materiais</option><option value="equip">Equipamentos</option></select>
-        <select id="me-o"><option value="var">Maior mudança</option><option value="up">Mais subiram</option><option value="down">Mais caíram</option><option value="vol">Mais negociados</option></select></div></div>
+    <details class="card dobra" data-k="me-tbl" open style="margin-top:14px"><summary><h3>Preço de cada item</h3><svg class="seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="dobra-corpo">
+      <div class="ctrl"><input id="me-q" placeholder="Buscar item…"><select id="me-t"><option value="all">Tudo</option><option value="stack">Consumíveis / materiais</option><option value="equip">Equipamentos</option></select>
+        <select id="me-o"><option value="var">Maior mudança</option><option value="up">Mais subiram</option><option value="down">Mais caíram</option><option value="vol">Mais negociados</option></select></div>
       <div class="tbl"><table id="me-tbl"></table></div>
       <p class="note">Preço = mediana das vendas no período. Itens com menos de 3 vendas no mês ficam de fora. Consumíveis aparecem por unidade (ou por 1.000, quando são muito baratos).</p>
-    </div>
+    </div></details>
   </div>
 </section>
 
@@ -483,14 +492,19 @@ async function buscarPersonagem(nick){
     <div class="card stat"><div class="k">Skills</div><div class="s" style="font-size:13px;line-height:1.7;margin-top:6px">Magic <b>${sk.magic??'—'}</b> · Melee <b>${sk.melee??'—'}</b> · Distance <b>${sk.distance??'—'}</b><br>Fist <b>${sk.fist??'—'}</b> · Shielding <b>${sk.shielding??'—'}</b></div></div>
     <div class="card stat"><div class="k">Set no market</div><div class="v">${comPreco?'~'+nf(total):'—'}</div><div class="s">coins somando a mediana de ${comPreco} de ${(p.equipment||[]).length} peças</div></div>
   </div>
-  <div class="card" style="margin-top:14px"><h3>Equipamento</h3><div class="tbl" style="max-height:none"><table><thead><tr><th>Slot</th><th>Item</th><th>Atributos</th><th class="n">Valor no market</th></tr></thead><tbody>${eq||'<tr><td colspan="4" class="empty">Equipamento escondido ou vazio.</td></tr>'}</tbody></table></div>
-  <p class="note">Valor no market = mediana das vendas dos últimos 7 dias de peças com o mesmo nome e raridade (entre parênteses, a faixa normal). Atributos, upgrade e forja mudam muito o preço real.</p></div>`;
+  <details class="card dobra" data-k="pe-equip" ${dobraAberta('pe-equip')?'open':''} style="margin-top:14px"><summary><h3>Equipamento</h3><svg class="seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="dobra-corpo"><div class="tbl" style="max-height:none"><table><thead><tr><th>Slot</th><th>Item</th><th>Atributos</th><th class="n">Valor no market</th></tr></thead><tbody>${eq||'<tr><td colspan="4" class="empty">Equipamento escondido ou vazio.</td></tr>'}</tbody></table></div>
+  <p class="note">Valor no market = mediana das vendas dos últimos 7 dias de peças com o mesmo nome e raridade (entre parênteses, a faixa normal). Atributos, upgrade e forja mudam muito o preço real.</p></div></details>`;
 }
 
 function renderAll(){buildItems();stamp();renderDicas();renderOP();renderHI();renderMeses();}
 const VIEWS=['dicas','personagem','quanto-pedir','oportunidades','historico','meses'];
 function route(){const h=location.hash.slice(1),v=VIEWS.includes(h)?h:'dicas';VIEWS.forEach(x=>$(x).classList.toggle('on',x===v));document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+v));}
-window.addEventListener('hashchange',route);
+window.addEventListener('hashchange',()=>{route();window.scrollTo(0,0);});
+window.addEventListener('load',()=>window.scrollTo(0,0));
+const DOBRAS=(()=>{try{return JSON.parse(localStorage.getItem('idleKnowDobras')||'{}')}catch(e){return{}}})();
+function dobraAberta(k){return DOBRAS[k]!==false;}
+document.querySelectorAll('details.dobra[data-k]').forEach(d=>{d.open=dobraAberta(d.dataset.k);});
+document.addEventListener('toggle',e=>{const d=e.target;if(!(d.matches&&d.matches('details.dobra[data-k]')))return;DOBRAS[d.dataset.k]=d.open;try{localStorage.setItem('idleKnowDobras',JSON.stringify(DOBRAS));}catch(_){}},true);
 $('tema').addEventListener('click',()=>{const n=document.documentElement.dataset.tema==='claro'?'escuro':'claro';document.documentElement.dataset.tema=n;try{localStorage.setItem('idleKnowTema',n);}catch(e){}});
 ['op-m','op-tipo','op-end'].forEach(id=>$(id).addEventListener('input',renderOP));
 ['me-a','me-b','me-q','me-t','me-o'].forEach(id=>$(id).addEventListener('input',drawMeses));
