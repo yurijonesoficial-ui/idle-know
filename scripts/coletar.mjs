@@ -61,34 +61,53 @@ async function main() {
     else { rows.sort((a, b) => a[6] - b[6]); await writeJson(join(RAW, `${m}.json`), { mes: m, rows }); log(`${m}: ${rows.length} vendas`); }
   }
   await writeJson(join(MESES, 'index.json'), [...idx.values()].sort((a, b) => b.mes.localeCompare(a.mes)));
-  await imagens();
+  const nomes = new Set([...todas.filter(r => r[1] === 'i').map(r => r[2]), ...browse.filter(x => x.item).map(x => x.item.name)]);
+  await imagens(nomes);
   log('pronto');
 }
 
-// Imagens dos itens: o jogo publica um catálogo (nome -> sprite). Baixamos cada
-// sprite UMA vez e guardamos em public/img/, para não depender do servidor do jogo.
-async function imagens() {
+// Imagens dos itens. Duas fontes públicas do jogo:
+//  1. o catálogo /api/things/manifest.json (nome -> sprite), com ~1.600 itens;
+//  2. a tabela de itens dentro do código do jogo (/jogar/assets/game-*.js),
+//     com ~9.700 nomes no formato "nome":{id:N} ou nome:{id:N}.
+// Baixamos o sprite de cada item que aparece no market UMA vez e guardamos em
+// public/img/. O site usa o servidor do jogo como reserva para o resto.
+async function tabelaDoJogo() {
+  const base = new URL('../../jogar/', API).href; // https://baiakidle.com/jogar/
+  const html = await (await fetch(base, { headers })).text();
+  let game = (html.match(/assets\/game-[\w-]+\.js/) || [])[0];
+  if (!game) {
+    const main = (html.match(/assets\/main-[\w-]+\.js/) || [])[0];
+    if (main) { const mt = await (await fetch(base + main, { headers })).text(); const g = (mt.match(/game-[\w-]+\.js/) || [])[0]; if (g) game = 'assets/' + g; }
+  }
+  if (!game) throw new Error('não achei o game-*.js');
+  const t = await (await fetch(base + game, { headers })).text();
+  const re = /(?:"([^"\\]+)"|([A-Za-z_$][\w$]*)):\{id:(\d+)[,}]/g, mapa = {};
+  let m; while ((m = re.exec(t))) { const n = m[1] || m[2]; if (!(n in mapa)) mapa[n] = +m[3]; }
+  return mapa;
+}
+
+async function imagens(nomes) {
   try {
     await mkdir(IMG, { recursive: true });
-    const r = await fetch(THINGS + 'manifest.json', { headers });
-    if (!r.ok) throw new Error('manifest HTTP ' + r.status);
-    const man = await r.json();
-    const itens = {};
-    for (const [nome, file] of Object.entries(man.items || {})) {
-      const m = /^object\/(\d+)\.png/.exec(file);
-      if (m) itens[nome] = +m[1];
-    }
+    const ids = {};
+    try { Object.assign(ids, await tabelaDoJogo()); } catch (e) { log('imagens: tabela do jogo indisponível —', e.message); }
+    try {
+      const man = await (await fetch(THINGS + 'manifest.json', { headers })).json();
+      for (const [nome, file] of Object.entries(man.items || {})) { const m = /^object\/(\d+)\.png/.exec(file); if (m) ids[nome] = +m[1]; }
+    } catch (e) { log('imagens: catálogo indisponível —', e.message); }
+    if (!Object.keys(ids).length) throw new Error('nenhuma fonte de imagens respondeu');
     const ja = new Set((await readdir(IMG)).filter(f => f.endsWith('.png')).map(f => +f.slice(0, -4)));
-    const faltam = [...new Set(Object.values(itens))].filter(id => !ja.has(id));
+    const faltam = [...new Set([...nomes].map(n => ids[n]).filter(Boolean))].filter(id => !ja.has(id));
     let baixadas = 0;
     for (const id of faltam.slice(0, 2500)) {
       const ri = await fetch(`${THINGS}object/${id}.png`, { headers });
       if (ri.ok) { await writeFile(join(IMG, `${id}.png`), Buffer.from(await ri.arrayBuffer())); baixadas++; ja.add(id); }
       await new Promise(res => setTimeout(res, 120));
     }
-    const comImagem = Object.fromEntries(Object.entries(itens).filter(([, id]) => ja.has(id)));
-    await writeJson(join(OUT, 'itens.json'), comImagem);
-    log(`imagens: ${Object.keys(comImagem).length} itens com imagem (${baixadas} baixadas agora)`);
+    await writeJson(join(OUT, 'itens.json'), ids);
+    const semImg = [...nomes].filter(n => !ids[n]);
+    log(`imagens: ${Object.keys(ids).length} nomes conhecidos, ${ja.size} sprites guardados (${baixadas} novos)${semImg.length ? `; sem imagem no jogo: ${semImg.slice(0, 8).join(', ')}` : ''}`);
   } catch (e) { log('imagens: não consegui atualizar agora —', e.message); }
 }
 
