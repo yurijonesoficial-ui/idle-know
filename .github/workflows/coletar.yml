@@ -27,7 +27,7 @@ jobs:
         run: |
           git config user.name "idle-know-bot"
           git config user.email "idle-know-bot@users.noreply.github.com"
-          git add -A dados public/data
+          git add -A dados public/data public/img
           if git diff --cached --quiet; then echo "nada novo"; exit 0; fi
           git commit -m "dados: coleta $(date -u +'%Y-%m-%d %H:%M') UTC"
           git push

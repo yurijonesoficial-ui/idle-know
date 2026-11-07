@@ -97,6 +97,12 @@ label.small{font-size:13px;color:var(--muted);font-weight:600}
 .price-hero>.stat:first-child{border-color:var(--goldLine);background:linear-gradient(var(--goldSoft),var(--goldSoft)),var(--panel)}
 .big{font-size:34px;font-weight:800;color:var(--gold2);font-variant-numeric:tabular-nums;letter-spacing:-.5px;line-height:1.1}
 .soon{opacity:.6}
+.item{display:inline-flex;align-items:center;gap:10px;vertical-align:middle}
+.ico{flex:none;display:inline-block;object-fit:contain;image-rendering:pixelated;border-radius:8px;background:var(--panel2);border:1px solid var(--line2);padding:2px}
+.ico.vazio{opacity:.5}
+.item-head{display:flex;align-items:center;gap:14px;margin:4px 0 14px}
+.item-head .ico{padding:4px;border-radius:10px}
+.item-nome{font-size:18px;font-weight:800}
 details.dobra>summary{list-style:none;display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;margin:-18px;padding:18px;border-radius:14px;user-select:none}
 details.dobra>summary::-webkit-details-marker{display:none}
 details.dobra>summary h3{margin:0}
@@ -244,6 +250,9 @@ footer{max-width:1180px;margin:0 auto;padding:0 20px 34px;color:var(--muted);fon
 <script>
 (function(){
 const RAR=['Comum','Incomum','Raro','Épico','Lendário','Mítico'];
+let ITENS={};
+const ico=(n,sz=32)=>{const id=ITENS[n];return id?`<img class="ico" src="img/${id}.png" alt="" loading="lazy" width="${sz+6}" height="${sz+6}">`:`<span class="ico vazio" style="width:${sz+6}px;height:${sz+6}px"></span>`;};
+const itm=(n,html)=>`<span class="item">${ico(n)}<span>${html}</span></span>`;
 const BLK=['0h–3h','3h–6h','6h–9h','9h–12h','12h–15h','15h–18h','18h–21h','21h–24h'];
 let D=null;
 
@@ -320,9 +329,9 @@ function renderDicas(){
   $('dicas-tips').innerHTML=tips.map(t=>`<div class="tip"><div class="ic">${t[0]}</div><div>${t[1]}<p>${t[2]}</p></div></div>`).join('');
   // top sellers
   $('dicas-top').innerHTML=`<thead><tr><th>Item</th><th class="n">Coins girados</th><th class="n">Vendas</th><th class="n">Preço normal</th></tr></thead><tbody>`+
-    st.slice(0,20).map(([k,v])=>`<tr><td>${cap(k)}</td><td class="n">${nf(v[4])}</td><td class="n">${nf(v[0])}</td><td class="n">${unitTxt(v[1])}</td></tr>`).join('')+'</tbody>';
+    st.slice(0,20).map(([k,v])=>`<tr><td>${itm(k,cap(k))}</td><td class="n">${nf(v[4])}</td><td class="n">${nf(v[0])}</td><td class="n">${unitTxt(v[1])}</td></tr>`).join('')+'</tbody>';
   // hours
-  const rows=[['Gold (100kk)',D.gold[5],D.gold[1],v=>nf(v,2)+' coins',D.gold[7]]].concat(st.filter(([k,v])=>v[0]>=40&&v[8]).map(([k,v])=>[cap(k),v[6],v[1],x=>unitTxt(x),v[8]]));
+  const rows=[[itm('gold coin','Gold (100kk)'),D.gold[5],D.gold[1],v=>nf(v,2)+' coins',D.gold[7]]].concat(st.filter(([k,v])=>v[0]>=40&&v[8]).map(([k,v])=>[itm(k,cap(k)),v[6],v[1],x=>unitTxt(x),v[8]]));
   $('dicas-hora').innerHTML=`<thead><tr><th>Item</th><th>Mais barato (comprar)</th><th>Mais caro (vender)</th><th class="n">Diferença</th></tr></thead><tbody>`+
     rows.map(([k,h,med,f,c])=>{const mm=minmax(h,c);if(!mm)return'';return`<tr><td>${k}</td><td><span class="up">${BLK[mm.lo[1]]}</span> · ${f(mm.lo[0])}</td><td><span class="down">${BLK[mm.hi[1]]}</span> · ${f(mm.hi[0])}</td><td class="n">${nf((mm.hi[0]/mm.lo[0]-1)*100,0)}%</td></tr>`;}).join('')+'</tbody>';
 }
@@ -354,7 +363,7 @@ function renderQP(name,it){
   const c=conf(n),r=x=>Math.max(25,Math.round(x));
   let hourTxt='';
   if(hours){const mm=minmax(hours,hcnt);if(mm)hourTxt=`<div class="tip" style="margin-top:14px"><div class="ic">⏱</div><div><b>Faça o anúncio terminar ${BLK[mm.hi[1]]}.</b><p>É quando esse item fecha mais caro. A duração do anúncio vai de 6h a 72h — escolha para o fim cair nesse horário.</p></div></div>`;}
-  out.innerHTML=`<div class="price-hero">
+  out.innerHTML=`<div class="item-head">${ico(name,48)}<div><div class="item-nome">${esc(cap(name))}${it.kind==='equip'?badge(+$('qp-tier').value):''}</div><div class="note" style="margin:0">${it.kind==='stack'?nf(Math.max(1,+$('qp-qty').value||1))+' unidades':'Equipamento'}</div></div></div><div class="price-hero">
     <div class="card stat"><div class="k">Pedir (preço inicial)</div><div class="big">${nf(r(med))}</div><div class="s">coins · mediana do mercado</div></div>
     <div class="card stat"><div class="k">Faixa normal</div><div class="v">${nf(r(p25))} – ${nf(r(p75))}</div><div class="s">metade das vendas ficou aqui</div></div>
     <div class="card stat"><div class="k">Você recebe</div><div class="v">${nf(Math.round(r(med)*0.9))}</div><div class="s">já tirando os 10% do market</div></div>
@@ -370,9 +379,9 @@ function renderOP(){
   if(tipo!=='gold')D.live.forEach(l=>{const[id,name,qty,tier,up,na,start,cur,bids,end]=l;const isS=qty>0;if(tipo==='stack'&&!isS||tipo==='equip'&&isS)return;
     const ref=isS?D.stack[name]:D.equip[name+'|'+tier];if(!ref)return;const fair=isS?ref[1]*qty:ref[1];const max=Math.floor(fair*0.9/(1+m));const lucro=Math.round(fair*0.9-cur);
     if(cur>max)return;if(!showEnd&&end<=now)return;
-    rows.push({id,label:`${isS?nf(qty)+'x ':''}${cap(name)}${isS?'':badge(tier)}${up?` <span class="note">+${up}</span>`:''}`,cur,fair,max,lucro,bids,end,n:ref[0]});});
+    rows.push({id,label:itm(name,`${isS?nf(qty)+'x ':''}${cap(name)}${isS?'':badge(tier)}${up?` <span class="note">+${up}</span>`:''}`),cur,fair,max,lucro,bids,end,n:ref[0]});});
   if(tipo==='all'||tipo==='gold'){const gm=D.gold[1];D.goldLive.forEach(l=>{const[id,amt,start,cur,bids,end]=l;const fair=amt/1e8*gm;const max=Math.floor(fair/(1+m));if(cur>max)return;if(!showEnd&&end<=now)return;
-    rows.push({id,label:`${kk(amt)} de gold <span class="note">(${nf(cur/(amt/1e8),2)}/100kk)</span>`,cur,fair:Math.round(fair),max,lucro:Math.round(fair-cur),bids,end,n:D.gold[0]});});}
+    rows.push({id,label:itm('gold coin',`${kk(amt)} de gold <span class="note">(${nf(cur/(amt/1e8),2)}/100kk)</span>`),cur,fair:Math.round(fair),max,lucro:Math.round(fair-cur),bids,end,n:D.gold[0]});});}
   rows.sort((a,b)=>b.lucro-a.lucro);
   const anyOpen=D.live.some(l=>l[9]>now)||D.goldLive.some(l=>l[5]>now);
   $('op-warn').innerHTML=anyOpen?'':`<div class="warn">Todos os anúncios desta coleta já encerraram. Vá em <a href="#atualizar">Atualizar dados</a> para pegar os anúncios de agora — enquanto isso, marque “mostrar já encerrados” para ver como era.</div>`;
@@ -398,8 +407,8 @@ function renderHI(){
     barChart($('hi-hour'),BLK.map(b=>b.replace('–','-')),vals,v=>nf(v,v<10?2:0)+(small?' /1.000':''),mm?mm.lo[1]:-1);};
   $('hi-sel').onchange=draw;draw();
   const tbl=()=>{const q=$('hi-q').value.trim().toLowerCase(),t=$('hi-t').value;const rows=[];
-    if(t!=='equip')Object.entries(D.stack).forEach(([k,v])=>{if(q&&!k.includes(q))return;rows.push([cap(k),'Consumível',v[0],unitTxt(v[1]),unitTxt(v[2])+' – '+unitTxt(v[3]),v[4]]);});
-    if(t!=='stack')Object.entries(D.equip).forEach(([k,v])=>{const[n,tt]=k.split('|');if(q&&!n.includes(q))return;rows.push([cap(n)+badge(+tt),'Equipamento',v[0],nf(v[1])+' coins',nf(v[2])+' – '+nf(v[3]),v[5]]);});
+    if(t!=='equip')Object.entries(D.stack).forEach(([k,v])=>{if(q&&!k.includes(q))return;rows.push([itm(k,cap(k)),'Consumível',v[0],unitTxt(v[1]),unitTxt(v[2])+' – '+unitTxt(v[3]),v[4]]);});
+    if(t!=='stack')Object.entries(D.equip).forEach(([k,v])=>{const[n,tt]=k.split('|');if(q&&!n.includes(q))return;rows.push([itm(n,cap(n)+badge(+tt)),'Equipamento',v[0],nf(v[1])+' coins',nf(v[2])+' – '+nf(v[3]),v[5]]);});
     rows.sort((a,b)=>b[5]-a[5]);
     $('hi-tbl').innerHTML=`<thead><tr><th>Item</th><th>Tipo</th><th class="n">Vendas</th><th class="n">Mediana</th><th class="n">Faixa normal</th><th class="n">Coins girados</th></tr></thead><tbody>`+
       (rows.length?rows.map(r=>`<tr><td>${r[0]}</td><td class="note">${r[1]}</td><td class="n">${nf(r[2])}</td><td class="n">${r[3]}</td><td class="n">${r[4]}</td><td class="n">${nf(r[5])}</td></tr>`).join(''):'<tr><td colspan="6" class="empty">Nenhum item encontrado.</td></tr>')+'</tbody>';};
@@ -420,6 +429,7 @@ async function loadMonths(){
   if(D)renderMeses();
 }
 async function loadData(){
+  try{ITENS=await getJson('data/itens.json');}catch(e){ITENS={};}
   try{D=await getJson('data/atual.json');$('loading').style.display='none';renderAll();}
   catch(e){$('loading').innerHTML='Ainda não há dados publicados — a primeira coleta acontece em até 6 horas depois que o site entra no ar.';}
 }
@@ -457,9 +467,9 @@ function drawMeses(){
   ].map(s=>`<div class="card stat"><div class="k">${s[0]}</div><div class="v" style="font-size:20px">${s[1]}</div><div class="s">${s[2]}</div></div>`).join('');
   const q=$('me-q').value.trim().toLowerCase(),t=$('me-t').value,o=$('me-o').value,rows=[];
   if(t!=='equip')Object.entries(A.stack||{}).forEach(([k,v])=>{if(q&&!k.includes(q))return;const w=(B.stack||{})[k];const small=v[1]<1;const f=x=>x==null?'—':small?nf(x*1000,0)+' /1.000':nf(x,x<10?2:0);
-    rows.push({label:cap(k),tipo:'Consumível',a:f(v[1]),b:w?f(w[1]):'—',v:w?pct(v[1],w[1]):null,na:v[0],nb:w?w[0]:0,vol:v[4]});});
+    rows.push({label:itm(k,cap(k)),tipo:'Consumível',a:f(v[1]),b:w?f(w[1]):'—',v:w?pct(v[1],w[1]):null,na:v[0],nb:w?w[0]:0,vol:v[4]});});
   if(t!=='stack')Object.entries(A.equip||{}).forEach(([k,v])=>{const[n,tt]=k.split('|');if(q&&!n.includes(q))return;const w=(B.equip||{})[k];
-    rows.push({label:cap(n)+badge(+tt),tipo:'Equipamento',a:nf(v[1]),b:w?nf(w[1]):'—',v:w?pct(v[1],w[1]):null,na:v[0],nb:w?w[0]:0,vol:v[5]});});
+    rows.push({label:itm(n,cap(n)+badge(+tt)),tipo:'Equipamento',a:nf(v[1]),b:w?nf(w[1]):'—',v:w?pct(v[1],w[1]):null,na:v[0],nb:w?w[0]:0,vol:v[5]});});
   const key={var:r=>r.v==null?-1:Math.abs(r.v),up:r=>r.v==null?-1e9:r.v,down:r=>r.v==null?-1e9:-r.v,vol:r=>r.vol}[o];
   rows.sort((x,y)=>key(y)-key(x));
   $('me-tbl').innerHTML=`<thead><tr><th>Item</th><th>Tipo</th><th class="n">${esc(A.label)}</th><th class="n">${esc(B.label)}</th><th class="n">Variação</th><th class="n">Vendas</th></tr></thead><tbody>`+
@@ -485,7 +495,7 @@ async function buscarPersonagem(nick){
   try{localStorage.setItem('idleKnowNick',nick);}catch(e){}
   const p=r.perfil,sk=p.skills||{};let total=0,comPreco=0;
   const eq=(p.equipment||[]).map(it=>{const ref=D&&D.equip?D.equip[it.name+'|'+(it.tier||0)]:null;if(ref){total+=ref[1];comPreco++;}
-    return`<tr><td class="note">${esc(SLOT[it.slot]||it.slot)}</td><td>${esc(cap(it.name))}${badge(it.tier||0)}${it.upLevel?` <span class="note">+${it.upLevel}</span>`:''}${it.ftier?` <span class="note">· forja ${it.ftier}</span>`:''}</td><td class="note">${(it.attrs||[]).map(attrTxt).join(' · ')||'—'}</td><td class="n">${ref?nf(ref[1])+' <span class="note">('+nf(ref[2])+'–'+nf(ref[3])+')</span>':'<span class="note">sem vendas</span>'}</td></tr>`;}).join('');
+    return`<tr><td class="note">${esc(SLOT[it.slot]||it.slot)}</td><td>${itm(it.name,`${esc(cap(it.name))}${badge(it.tier||0)}${it.upLevel?` <span class="note">+${it.upLevel}</span>`:''}${it.ftier?` <span class="note">· forja ${it.ftier}</span>`:''}`)}</td><td class="note">${(it.attrs||[]).map(attrTxt).join(' · ')||'—'}</td><td class="n">${ref?nf(ref[1])+' <span class="note">('+nf(ref[2])+'–'+nf(ref[3])+')</span>':'<span class="note">sem vendas</span>'}</td></tr>`;}).join('');
   out.innerHTML=`<div class="grid g4">
     <div class="card stat"><div class="k">Personagem</div><div class="v" style="font-size:22px">${esc(p.name)}</div><div class="s">${esc(VOC[p.vocation]||p.vocation)} ${p.online?'· <span class="up">online</span>':'· offline'}</div></div>
     <div class="card stat"><div class="k">Level</div><div class="v">${nf(p.level)}</div><div class="s">${nf(+p.experience)} de XP</div></div>

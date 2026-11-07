@@ -7,12 +7,14 @@
 import { readFile, writeFile, mkdir, readdir, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { pullHistory, pullBrowse, buildPack, summarizeMonth, monthOf, nextMonthStart, DAY } from './core.mjs';
+import { pullHistory, pullBrowse, buildPack, summarizeMonth, monthOf, nextMonthStart, DAY, API } from './core.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const RAW = join(ROOT, 'dados/vendas');
 const OUT = join(ROOT, 'public/data');
 const MESES = join(OUT, 'meses');
+const IMG = join(ROOT, 'public/img');
+const THINGS = new URL('../things/', API).href; // https://baiakidle.com/api/things/
 const headers = { 'user-agent': 'IdleKnow/1.0 (site de estatisticas do market; coleta 4x por dia)' };
 const log = (...a) => console.log('[idle-know]', ...a);
 const readJson = async (p, def) => existsSync(p) ? JSON.parse(await readFile(p, 'utf8')) : def;
@@ -59,7 +61,35 @@ async function main() {
     else { rows.sort((a, b) => a[6] - b[6]); await writeJson(join(RAW, `${m}.json`), { mes: m, rows }); log(`${m}: ${rows.length} vendas`); }
   }
   await writeJson(join(MESES, 'index.json'), [...idx.values()].sort((a, b) => b.mes.localeCompare(a.mes)));
+  await imagens();
   log('pronto');
+}
+
+// Imagens dos itens: o jogo publica um catálogo (nome -> sprite). Baixamos cada
+// sprite UMA vez e guardamos em public/img/, para não depender do servidor do jogo.
+async function imagens() {
+  try {
+    await mkdir(IMG, { recursive: true });
+    const r = await fetch(THINGS + 'manifest.json', { headers });
+    if (!r.ok) throw new Error('manifest HTTP ' + r.status);
+    const man = await r.json();
+    const itens = {};
+    for (const [nome, file] of Object.entries(man.items || {})) {
+      const m = /^object\/(\d+)\.png/.exec(file);
+      if (m) itens[nome] = +m[1];
+    }
+    const ja = new Set((await readdir(IMG)).filter(f => f.endsWith('.png')).map(f => +f.slice(0, -4)));
+    const faltam = [...new Set(Object.values(itens))].filter(id => !ja.has(id));
+    let baixadas = 0;
+    for (const id of faltam.slice(0, 2500)) {
+      const ri = await fetch(`${THINGS}object/${id}.png`, { headers });
+      if (ri.ok) { await writeFile(join(IMG, `${id}.png`), Buffer.from(await ri.arrayBuffer())); baixadas++; ja.add(id); }
+      await new Promise(res => setTimeout(res, 120));
+    }
+    const comImagem = Object.fromEntries(Object.entries(itens).filter(([, id]) => ja.has(id)));
+    await writeJson(join(OUT, 'itens.json'), comImagem);
+    log(`imagens: ${Object.keys(comImagem).length} itens com imagem (${baixadas} baixadas agora)`);
+  } catch (e) { log('imagens: não consegui atualizar agora —', e.message); }
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
