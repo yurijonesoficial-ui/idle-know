@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Idle-Know — Baiak Idle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#13100c;--panel:#1d1913;--panel2:#252017;--line:#3a3226;--line2:#2c261d;
+  --ink:#ece4d4;--ink2:#b9ae99;--muted:#8a7f6c;--gold:#d9a441;--gold2:#f0c46a;
+  --good:#6cc07a;--bad:#e0715f;--bar:#c8933a;--barHi:#f0c46a;
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(1200px 500px at 50% -200px,#2a2113 0%,var(--bg) 60%);color:var(--ink);font:14px/1.5 Inter,system-ui,sans-serif;min-height:100vh}
+a{color:var(--gold2)}
+header{max-width:1180px;margin:0 auto;padding:28px 20px 8px;display:flex;gap:16px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
+.brand h1{font-family:Cinzel,serif;font-size:28px;margin:0;letter-spacing:.5px;color:var(--gold2)}
+.brand p{margin:2px 0 0;color:var(--muted);font-size:13px}
+.stamp{font-size:12px;color:var(--muted);text-align:right}
+.stamp b{color:var(--ink2);font-weight:600}
+nav{max-width:1180px;margin:14px auto 0;padding:0 20px;display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+nav a{padding:10px 14px;color:var(--ink2);text-decoration:none;font-weight:600;font-size:13px;border-bottom:2px solid transparent;white-space:nowrap}
+nav a:hover{color:var(--ink)}
+nav a.on{color:var(--gold2);border-color:var(--gold)}
+main{max-width:1180px;margin:0 auto;padding:22px 20px 60px}
+section{display:none}section.on{display:block}
+h2{font-family:Cinzel,serif;font-size:20px;margin:0 0 4px;color:var(--ink)}
+h3{font-size:14px;margin:0 0 10px;color:var(--ink);font-weight:700}
+.lead{color:var(--ink2);margin:0 0 18px;max-width:780px}
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.g2{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:10px;padding:16px}
+.stat .k{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.stat .v{font-size:26px;font-weight:700;color:var(--ink);margin-top:2px;font-variant-numeric:tabular-nums}
+.stat .s{font-size:12px;color:var(--ink2);margin-top:2px}
+.up{color:var(--good)}.down{color:var(--bad)}
+.tip{display:flex;gap:12px;align-items:flex-start}
+.tip .ic{flex:0 0 32px;height:32px;border-radius:8px;background:#2f2716;border:1px solid #5a4824;display:grid;place-items:center;color:var(--gold2);font-weight:700}
+.tip p{margin:2px 0 0;color:var(--ink2)}
+.tip b{color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line2);font-size:13px}
+th{color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;cursor:default;position:sticky;top:0;background:var(--panel)}
+td.n,th.n{text-align:right}
+tr:hover td{background:#221d15}
+.tbl{max-height:560px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:1px;text-transform:uppercase;letter-spacing:.4px;border:1px solid}
+.r0{color:#b9b3a6;border-color:#4a453c}.r1{color:#7fd08a;border-color:#2f5a35}.r2{color:#6fa8ff;border-color:#294a7a}
+.r3{color:#c08cff;border-color:#4e3375}.r4{color:#ffb24a;border-color:#6e4a17}.r5{color:#ff6f8e;border-color:#6e2236}
+.ctrl{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:0 0 14px}
+input,select,textarea,button{font:inherit;color:var(--ink);background:#15120d;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+input:focus,select:focus,textarea:focus{outline:2px solid #6b5426;border-color:#6b5426}
+button{background:#3a2d14;border-color:#6b5426;color:var(--gold2);font-weight:600;cursor:pointer}
+button:hover{background:#4a3a1a}
+button.ghost{background:transparent;color:var(--ink2);border-color:var(--line)}
+label.small{font-size:12px;color:var(--muted)}
+.note{font-size:12px;color:var(--muted);margin-top:10px}
+.warn{background:#2a1d14;border:1px solid #6e3f22;color:#f1c9a8;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:14px}
+.chart{position:relative}
+.chart svg{width:100%;height:auto;display:block}
+.tt{position:absolute;pointer-events:none;background:#0d0b08;border:1px solid var(--line);border-radius:6px;padding:6px 8px;font-size:12px;color:var(--ink);white-space:nowrap;transform:translate(-50%,-110%);display:none;z-index:5}
+.price-hero{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:6px}
+.big{font-size:30px;font-weight:700;color:var(--gold2);font-variant-numeric:tabular-nums}
+.conf{font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);color:var(--ink2)}
+pre{background:#0d0b08;border:1px solid var(--line);border-radius:8px;padding:12px;max-height:220px;overflow:auto;font-size:11.5px;color:#cfc4ad;white-space:pre-wrap;word-break:break-all}
+ol.steps{padding-left:20px;color:var(--ink2)}ol.steps li{margin:6px 0}
+.soon{opacity:.55}
+.empty{padding:26px;text-align:center;color:var(--muted)}
+footer{max-width:1180px;margin:0 auto;padding:0 20px 30px;color:var(--muted);font-size:12px}
+@media (max-width:600px){.stat .v{font-size:22px}.big{font-size:24px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <h1>Idle-Know</h1>
+    <p>“I don’t know…” — o Idle-Know sabe. Preços, dicas e oportunidades do market do Baiak Idle.</p>
+  </div>
+  <div class="stamp" id="stamp"></div>
+</header>
+<nav id="nav">
+  <a href="#dicas">Dicas</a>
+  <a href="#personagem">Personagem</a>
+  <a href="#quanto-pedir">Quanto pedir</a>
+  <a href="#oportunidades">Oportunidades</a>
+  <a href="#historico">Histórico</a>
+  <a href="#meses">Meses</a>
+</nav>
+<main>
+<div id="loading" class="card empty" style="margin-bottom:14px">Carregando os dados do market…</div>
+
+<!-- DICAS -->
+<section id="dicas">
+  <h2>Dicas do market</h2>
+  <p class="lead">O que mais vende, quando comprar e quando vender. Equipamentos ficam de fora daqui porque o preço deles depende demais dos atributos — para eles, use <a href="#quanto-pedir">Quanto pedir</a>.</p>
+  <div class="grid g4" id="dicas-stats"></div>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card"><h3>O que tem que saber</h3><div class="grid" id="dicas-tips" style="gap:14px"></div></div>
+    <div class="card"><h3>Mais vendidos (fora equipamentos)</h3><div class="tbl" style="max-height:420px"><table id="dicas-top"></table></div></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h3>Melhor horário de cada item</h3>
+    <p class="note" style="margin:-4px 0 10px">Horário em que os leilões <b>terminam</b> (Brasília). Para comprar, mire nos leilões que acabam no horário mais barato. Para vender, escolha a duração do anúncio para ele acabar no horário mais caro. Só entram itens com vendas suficientes em cada horário.</p>
+    <div class="tbl" style="max-height:420px"><table id="dicas-hora"></table></div>
+  </div>
+</section>
+
+<!-- QUANTO PEDIR -->
+<section id="quanto-pedir">
+  <h2>Quanto pedir</h2>
+  <p class="lead">Escolha o item e veja o preço que o mercado está pagando. Lembre: o market fica com <b>10%</b> da venda e cobra <b>5kk de gold</b> por anúncio. O lance mínimo é 25 coins.</p>
+  <div class="card">
+    <div class="ctrl">
+      <div style="flex:1 1 280px"><label class="small">Item</label><br><input id="qp-item" list="qp-list" placeholder="Digite o nome… ex.: death essence" style="width:100%"><datalist id="qp-list"></datalist></div>
+      <div id="qp-qty-wrap"><label class="small">Quantidade</label><br><input id="qp-qty" type="number" min="1" value="1000" style="width:120px"></div>
+      <div id="qp-tier-wrap"><label class="small">Raridade</label><br><select id="qp-tier"></select></div>
+    </div>
+    <div id="qp-out"><div class="empty">Comece digitando o nome do item.</div></div>
+  </div>
+</section>
+
+<!-- OPORTUNIDADES -->
+<section id="oportunidades">
+  <h2>Oportunidades abertas</h2>
+  <p class="lead">Anúncios que estão abaixo do preço normal. O <b>lance máximo</b> é o valor até onde ainda dá lucro revendendo, já tirando os 10% do market e a margem que você escolher.</p>
+  <div id="op-warn"></div>
+  <div class="ctrl">
+    <select id="op-tipo"><option value="all">Todos</option><option value="stack">Consumíveis / materiais</option><option value="equip">Equipamentos</option><option value="gold">Gold</option></select>
+    <label class="small">Margem que quero ganhar: <b id="op-mv">15%</b></label>
+    <input id="op-m" type="range" min="0" max="50" step="5" value="15" style="width:160px;padding:0">
+    <label class="small"><input type="checkbox" id="op-end" style="vertical-align:-2px"> mostrar já encerrados</label>
+  </div>
+  <div class="tbl"><table id="op-tbl"></table></div>
+  <p class="note">Equipamento: a comparação é por nome e raridade. Atributos, upgrade (+) e forja mudam muito o preço — confira o item antes de dar lance.</p>
+</section>
+
+<!-- HISTÓRICO -->
+<section id="historico">
+  <h2>Histórico do market</h2>
+  <p class="lead">Números das vendas fechadas no período. Só informação — as dicas estão na outra aba.</p>
+  <div class="grid g4" id="hi-stats"></div>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card"><h3>Cotação do gold — coins por 100kk, por dia</h3><div class="chart" id="hi-gold"></div></div>
+    <div class="card">
+      <div class="ctrl" style="justify-content:space-between;margin-bottom:6px"><h3 style="margin:0">Preço por horário de término</h3><select id="hi-sel"></select></div>
+      <div class="chart" id="hi-hour"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="ctrl" style="justify-content:space-between"><h3 style="margin:0">Todos os preços de referência</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><input id="hi-q" placeholder="Buscar item…"><select id="hi-t"><option value="all">Tudo</option><option value="stack">Consumíveis / materiais</option><option value="equip">Equipamentos</option></select></div></div>
+    <div class="tbl"><table id="hi-tbl"></table></div>
+  </div>
+</section>
+
+<!-- MESES -->
+<section id="meses">
+  <h2>Meses</h2>
+  <p class="lead">O Idle-Know guarda todas as vendas do mês. Quando o mês vira, o resumo de preços fica salvo aqui para sempre. Compare os preços de agora com os de qualquer mês.</p>
+  <div id="me-status"></div>
+  <div id="me-body" style="display:none">
+    <div class="ctrl">
+      <div><label class="small">Comparar</label><br><select id="me-a"></select></div>
+      <div style="padding-top:18px;color:var(--muted)">com</div>
+      <div><label class="small">Mês de referência</label><br><select id="me-b"></select></div>
+    </div>
+    <div class="grid g4" id="me-stats"></div>
+    <div class="card" style="margin-top:14px">
+      <div class="ctrl" style="justify-content:space-between"><h3 style="margin:0">Preço de cada item</h3>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><input id="me-q" placeholder="Buscar item…"><select id="me-t"><option value="all">Tudo</option><option value="stack">Consumíveis / materiais</option><option value="equip">Equipamentos</option></select>
+        <select id="me-o"><option value="var">Maior mudança</option><option value="up">Mais subiram</option><option value="down">Mais caíram</option><option value="vol">Mais negociados</option></select></div></div>
+      <div class="tbl"><table id="me-tbl"></table></div>
+      <p class="note">Preço = mediana das vendas no período. Itens com menos de 3 vendas no mês ficam de fora. Consumíveis aparecem por unidade (ou por 1.000, quando são muito baratos).</p>
+    </div>
+  </div>
+</section>
+
+<!-- PERSONAGEM -->
+<section id="personagem">
+  <h2>Personagem</h2>
+  <p class="lead">Digite o nick e veja vocação, level, skills e o equipamento, com o valor de cada peça no market.</p>
+  <form id="pe-form" class="ctrl" autocomplete="off">
+    <input id="pe-nick" placeholder="Nick do personagem…" style="flex:1 1 260px;max-width:420px" maxlength="30">
+    <button type="submit">Buscar</button>
+  </form>
+  <div id="pe-out"><div class="card empty">Os dados vêm direto do Baiak Idle e são públicos (os mesmos da página do personagem no site do jogo).</div></div>
+  <div class="card soon" style="margin-top:14px"><h3>Em breve</h3><p class="note" style="margin:0">Otimizador de build · catálogo de hunts · planejador de party.</p></div>
+</section>
+
+</main>
+<footer id="foot"></footer>
+
+<script>
+(function(){
+const RAR=['Comum','Incomum','Raro','Épico','Lendário','Mítico'];
+const BLK=['0h–3h','3h–6h','6h–9h','9h–12h','12h–15h','15h–18h','18h–21h','21h–24h'];
+let D=null;
+
+const $=id=>document.getElementById(id);
+const nf=(x,d)=>x==null||isNaN(x)?'—':x.toLocaleString('pt-BR',{maximumFractionDigits:d==null?(Math.abs(x)<10?3:0):d,minimumFractionDigits:0});
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const cap=s=>s.replace(/\b\w/g,c=>c.toUpperCase());
+const badge=t=>`<span class="badge r${t}">${RAR[t]||'T'+t}</span>`;
+const kk=g=>g>=1e9?nf(g/1e9,2)+'kkk':nf(g/1e6,0)+'kk';
+const dt=t=>new Date(t).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+const dd=s=>s.slice(3)+'/'+s.slice(0,2);
+function left(t){const m=Math.round((t-Date.now())/6e4);if(m<=0)return'<span class="down">encerrado</span>';if(m<60)return m+' min';const h=Math.floor(m/60);if(h<48)return h+'h'+String(m%60).padStart(2,'0');return Math.floor(h/24)+'d '+(h%24)+'h';}
+// per-unit display: tiny prices shown per 1000
+function unitTxt(u){return u<1?nf(u*1000,0)+' por 1.000':nf(u,u<10?2:0)+' por un.';}
+function minmax(a,c){if(!c)return null;const v=a.map((x,i)=>[x,i]).filter(p=>p[0]!=null&&c[p[1]]>=5);if(v.length<2)return null;let lo=v[0],hi=v[0];v.forEach(p=>{if(p[0]<lo[0])lo=p;if(p[0]>hi[0])hi=p;});return{lo,hi};}
+
+/* ---------- charts (single series, one hue) ---------- */
+function tipFor(el){let t=el.querySelector('.tt');if(!t){t=document.createElement('div');t.className='tt';el.appendChild(t);}return t;}
+function barChart(el,labels,vals,fmt,hiIdx){
+  const W=640,H=230,L=46,R=10,T=14,B=30,n=labels.length,cw=(W-L-R)/n,max=Math.max(...vals.filter(v=>v!=null))*1.12||1;
+  const y=v=>T+(H-T-B)*(1-v/max);let g='';
+  for(let i=0;i<=4;i++){const v=max*i/4,yy=y(v);g+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="#2c261d"/><text x="${L-6}" y="${yy+4}" fill="#8a7f6c" font-size="11" text-anchor="end">${fmt(v)}</text>`;}
+  let bars='';vals.forEach((v,i)=>{const x=L+i*cw+cw*.18,w=cw*.64;bars+=`<text x="${L+i*cw+cw/2}" y="${H-10}" fill="#8a7f6c" font-size="11" text-anchor="middle">${labels[i]}</text>`;
+    if(v==null){bars+=`<text x="${L+i*cw+cw/2}" y="${H-B-6}" fill="#5a5245" font-size="10" text-anchor="middle">sem venda</text>`;return;}
+    const yy=y(v),h=H-B-yy,r=Math.min(4,h/2);
+    bars+=`<path d="M${x},${H-B} V${yy+r} Q${x},${yy} ${x+r},${yy} H${x+w-r} Q${x+w},${yy} ${x+w},${yy+r} V${H-B} Z" fill="${i===hiIdx?'#f0c46a':'#b5852f'}"/>`;
+    bars+=`<rect x="${L+i*cw}" y="${T}" width="${cw}" height="${H-T-B}" fill="transparent" data-i="${i}"/>`;});
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img">${g}<line x1="${L}" x2="${W-R}" y1="${H-B}" y2="${H-B}" stroke="#4a4030"/>${bars}</svg>`;
+  const tt=tipFor(el);
+  el.querySelectorAll('rect[data-i]').forEach(r=>{r.addEventListener('mousemove',e=>{const i=+r.dataset.i,b=el.getBoundingClientRect();tt.style.display='block';tt.style.left=(e.clientX-b.left)+'px';tt.style.top=(e.clientY-b.top)+'px';tt.innerHTML=`<b>${labels[i]}</b><br>${vals[i]==null?'sem venda':fmt(vals[i])}`;});r.addEventListener('mouseleave',()=>tt.style.display='none');});
+}
+function lineChart(el,labels,vals,fmt){
+  const W=640,H=230,L=46,R=14,T=14,B=30,n=labels.length,v2=vals.filter(v=>v!=null);
+  const mn=Math.min(...v2)*.95,mx=Math.max(...v2)*1.05,x=i=>L+(W-L-R)*(n<2?.5:i/(n-1)),y=v=>T+(H-T-B)*(1-(v-mn)/(mx-mn||1));
+  let g='';for(let i=0;i<=4;i++){const v=mn+(mx-mn)*i/4;g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#2c261d"/><text x="${L-6}" y="${y(v)+4}" fill="#8a7f6c" font-size="11" text-anchor="end">${fmt(v)}</text>`;}
+  const pts=vals.map((v,i)=>v==null?null:[x(i),y(v)]).filter(Boolean);
+  let s=`<path d="M${pts.map(p=>p.join(',')).join(' L')}" fill="none" stroke="#e0ad4f" stroke-width="2"/>`;
+  pts.forEach(p=>s+=`<circle cx="${p[0]}" cy="${p[1]}" r="4" fill="#e0ad4f" stroke="#1d1913" stroke-width="2"/>`);
+  labels.forEach((l,i)=>s+=`<text x="${x(i)}" y="${H-10}" fill="#8a7f6c" font-size="11" text-anchor="middle">${l}</text>`);
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img">${g}${s}<line class="xh" x1="0" x2="0" y1="${T}" y2="${H-B}" stroke="#6b5426" display="none"/><rect x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}" fill="transparent" class="hit"/></svg>`;
+  const svg=el.querySelector('svg'),hit=el.querySelector('.hit'),xh=el.querySelector('.xh'),tt=tipFor(el);
+  hit.addEventListener('mousemove',e=>{const b=svg.getBoundingClientRect(),sx=(e.clientX-b.left)*W/b.width,i=Math.max(0,Math.min(n-1,Math.round((sx-L)/(W-L-R)*(n-1))));
+    xh.setAttribute('x1',x(i));xh.setAttribute('x2',x(i));xh.setAttribute('display','');const eb=el.getBoundingClientRect();
+    tt.style.display='block';tt.style.left=(x(i)*b.width/W)+'px';tt.style.top=((vals[i]==null?T:y(vals[i]))*b.height/H)+'px';tt.innerHTML=`<b>${labels[i]}</b><br>${vals[i]==null?'sem venda':fmt(vals[i])}`;});
+  hit.addEventListener('mouseleave',()=>{tt.style.display='none';xh.setAttribute('display','none');});
+}
+
+/* ---------- render ---------- */
+function stamp(){
+  const m=D.meta;
+  $('stamp').innerHTML=`Dados de <b>${dt(m.de)}</b> a <b>${dt(m.ate)}</b><br>atualizado em ${dt(m.coletado)} · <span class="note">a cada 6 horas</span>`;
+  $('foot').textContent=`${nf(m.vendas)} vendas fechadas analisadas. Preço de referência = mediana das vendas. Dados públicos do Baiak Idle, coletados automaticamente. Não é afiliado ao Baiak Idle.`;
+}
+function goldNow(){const d=D.gold[6].filter(v=>v!=null);return{first:d[0],last:d[d.length-1]};}
+
+function renderDicas(){
+  const m=D.meta,g=goldNow(),gch=(g.last/g.first-1)*100;
+  const st=Object.entries(D.stack).sort((a,b)=>b[1][4]-a[1][4]);
+  const top=st[0];
+  $('dicas-stats').innerHTML=[
+    ['Vendas na semana',nf(m.vendas),`${nf(m.coins)} coins movimentados`],
+    ['Leilões sem disputa',nf(m.umLance/m.vendas*100,0)+'%','venderam com 1 lance só'],
+    ['Gold hoje',nf(g.last,2)+' coins',`por 100kk · <span class="${gch<0?'down':'up'}">${gch>0?'+':''}${nf(gch,1)}% na semana</span>`],
+    ['Mais negociado',cap(top[0]),`${nf(top[1][4]/m.coins*100,0)}% de tudo que girou`]
+  ].map(s=>`<div class="card stat"><div class="k">${s[0]}</div><div class="v">${s[1]}</div><div class="s">${s[2]}</div></div>`).join('');
+  // tips
+  const tips=[];
+  tips.push(['1',`<b>Quem anuncia define o preço.</b>`,`${nf(m.precoInicial/m.vendas*100,0)}% dos itens venderam exatamente pelo preço inicial. Para comprar barato, procure leilões com lance baixo e sem disputa perto do fim. Para vender, não comece baixo esperando disputa — ela quase não acontece.`]);
+  tips.push(['2',`<b>Gold ${gch<0?'perdendo':'ganhando'} valor em coins.</b>`,`100kk valiam ${nf(g.first,2)} coins no começo do período e agora valem ${nf(g.last,2)}. ${gch<0?'Se tem gold sobrando, trocar por coins antes compensa mais do que esperar.':'Segurar gold está valendo a pena.'}`]);
+  const de=D.stack['death essence'];
+  if(de){const mm=minmax(de[6],de[8]);if(mm)tips.push(['3',`<b>Death essence mais barata ${BLK[mm.lo[1]]}.</b>`,`Leilões que fecham nesse horário saem por ${nf(mm.lo[0]*1000,0)} coins a cada 1.000, contra ${nf(de[1]*1000,0)} normalmente. Mais caro: ${BLK[mm.hi[1]]} (${nf(mm.hi[0]*1000,0)}).`]);}
+  ['addon casket','mount casket'].forEach((k,j)=>{const s=D.stack[k];if(!s)return;const mm=minmax(s[6],s[8]);if(mm)tips.push([String(4+j),`<b>${cap(k)}: compre ${BLK[mm.lo[1]]}, venda ${BLK[mm.hi[1]]}.</b>`,`Mediana de ${nf(mm.lo[0],0)} contra ${nf(mm.hi[0],0)} coins por unidade (normal: ${nf(s[1],0)}).`]);});
+  tips.push([String(tips.length+1),`<b>Conta do flip.</b>`,`O market fica com 10% da venda. Para ter lucro revendendo, compre pelo menos ~11% abaixo do preço que você consegue vender — e lembre dos 5kk de gold do anúncio.`]);
+  $('dicas-tips').innerHTML=tips.map(t=>`<div class="tip"><div class="ic">${t[0]}</div><div>${t[1]}<p>${t[2]}</p></div></div>`).join('');
+  // top sellers
+  $('dicas-top').innerHTML=`<thead><tr><th>Item</th><th class="n">Coins girados</th><th class="n">Vendas</th><th class="n">Preço normal</th></tr></thead><tbody>`+
+    st.slice(0,20).map(([k,v])=>`<tr><td>${cap(k)}</td><td class="n">${nf(v[4])}</td><td class="n">${nf(v[0])}</td><td class="n">${unitTxt(v[1])}</td></tr>`).join('')+'</tbody>';
+  // hours
+  const rows=[['Gold (100kk)',D.gold[5],D.gold[1],v=>nf(v,2)+' coins',D.gold[7]]].concat(st.filter(([k,v])=>v[0]>=40&&v[8]).map(([k,v])=>[cap(k),v[6],v[1],x=>unitTxt(x),v[8]]));
+  $('dicas-hora').innerHTML=`<thead><tr><th>Item</th><th>Mais barato (comprar)</th><th>Mais caro (vender)</th><th class="n">Diferença</th></tr></thead><tbody>`+
+    rows.map(([k,h,med,f,c])=>{const mm=minmax(h,c);if(!mm)return'';return`<tr><td>${k}</td><td><span class="up">${BLK[mm.lo[1]]}</span> · ${f(mm.lo[0])}</td><td><span class="down">${BLK[mm.hi[1]]}</span> · ${f(mm.hi[0])}</td><td class="n">${nf((mm.hi[0]/mm.lo[0]-1)*100,0)}%</td></tr>`;}).join('')+'</tbody>';
+}
+
+/* ---------- quanto pedir ---------- */
+let ITEMS=new Map();function buildItems(){if(!D)return;ITEMS=(()=>{const m=new Map();Object.keys(D.stack).forEach(k=>m.set(k,{kind:'stack'}));Object.keys(D.equip).forEach(k=>{const[n,t]=k.split('|');if(!m.has(n))m.set(n,{kind:'equip',tiers:[]});const o=m.get(n);if(o.kind==='equip')o.tiers.push(+t);});return m;})();
+  if($('qp-list'))$('qp-list').innerHTML=[...ITEMS.keys()].sort().map(k=>`<option value="${esc(k)}">`).join('');}
+let lastQP='';
+function setupQP(){
+  buildItems();$('qp-list').innerHTML=[...ITEMS.keys()].sort().map(k=>`<option value="${esc(k)}">`).join('');
+  const upd=()=>{const name=$('qp-item').value.trim().toLowerCase(),it=ITEMS.get(name);
+    $('qp-qty-wrap').style.display=it&&it.kind==='equip'?'none':'';$('qp-tier-wrap').style.display=it&&it.kind==='equip'?'':'none';
+    if(it&&it.kind==='equip'&&lastQP!==name){lastQP=name;const ts=[...new Set(it.tiers)].sort();$('qp-tier').innerHTML=ts.map(t=>`<option value="${t}">${RAR[t]}</option>`).join('');$('qp-tier').value=ts.reduce((a,t)=>D.equip[name+'|'+t][5]>D.equip[name+'|'+a][5]?t:a,ts[0]);}if(!it)lastQP='';
+    renderQP(name,it);};
+  ['input','change'].forEach(ev=>{$('qp-item').addEventListener(ev,upd);$('qp-qty').addEventListener(ev,()=>renderQP($('qp-item').value.trim().toLowerCase(),ITEMS.get($('qp-item').value.trim().toLowerCase())));$('qp-tier').addEventListener(ev,upd);});
+  $('qp-tier-wrap').style.display='none';
+}
+function conf(n){return n>=15?['alta','up']:n>=6?['média','']:['baixa','down'];}
+function renderQP(name,it){
+  const out=$('qp-out');
+  if(!name){out.innerHTML='<div class="empty">Comece digitando o nome do item.</div>';return;}
+  if(!it){const sug=[...ITEMS.keys()].filter(k=>k.includes(name)).slice(0,8);out.innerHTML=`<div class="empty">${sug.length?'Você quis dizer: '+sug.map(s=>`<a href="#quanto-pedir" data-s="${esc(s)}">${cap(s)}</a>`).join(' · '):'Esse item não teve vendas suficientes no período para dar um preço confiável.'}</div>`;
+    out.querySelectorAll('a[data-s]').forEach(a=>a.onclick=e=>{e.preventDefault();$('qp-item').value=a.dataset.s;$('qp-item').dispatchEvent(new Event('input'));});return;}
+  let med,p25,p75,n,extra='',hours=null;
+  if(it.kind==='stack'){const s=D.stack[name],q=Math.max(1,+$('qp-qty').value||1);n=s[0];med=s[1]*q;p25=s[2]*q;p75=s[3]*q;hours=s[6];var hcnt=s[8];
+    extra=`<p class="note">Preço por unidade: ${unitTxt(s[1])}. Baseado em ${nf(s[0])} vendas (${nf(s[5])} unidades).</p>`;}
+  else{const t=+$('qp-tier').value,e=D.equip[name+'|'+t];if(!e){out.innerHTML='<div class="empty">Sem vendas suficientes nessa raridade.</div>';return;}
+    n=e[0];med=e[1];p25=e[2];p75=e[3];extra=`<p class="note">Baseado em ${nf(n)} vendas de ${cap(name)} ${RAR[t]}. Maior venda: ${nf(e[4])} coins. <b>Atenção:</b> atributos, upgrade (+) e forja mudam muito o preço — itens com bons atributos ficam perto do topo da faixa ou acima.</p>`;}
+  const c=conf(n),r=x=>Math.max(25,Math.round(x));
+  let hourTxt='';
+  if(hours){const mm=minmax(hours,hcnt);if(mm)hourTxt=`<div class="tip" style="margin-top:14px"><div class="ic">⏱</div><div><b>Faça o anúncio terminar ${BLK[mm.hi[1]]}.</b><p>É quando esse item fecha mais caro. A duração do anúncio vai de 6h a 72h — escolha para o fim cair nesse horário.</p></div></div>`;}
+  out.innerHTML=`<div class="price-hero">
+    <div class="card stat"><div class="k">Pedir (preço inicial)</div><div class="big">${nf(r(med))}</div><div class="s">coins · mediana do mercado</div></div>
+    <div class="card stat"><div class="k">Faixa normal</div><div class="v">${nf(r(p25))} – ${nf(r(p75))}</div><div class="s">metade das vendas ficou aqui</div></div>
+    <div class="card stat"><div class="k">Você recebe</div><div class="v">${nf(Math.round(r(med)*0.9))}</div><div class="s">já tirando os 10% do market</div></div>
+    <div class="card stat"><div class="k">Confiança</div><div class="v"><span class="${c[1]}">${c[0]}</span></div><div class="s">${nf(n)} vendas no período</div></div>
+  </div>${hourTxt}<div class="tip" style="margin-top:14px"><div class="ic">!</div><div><b>Quer vender rápido?</b><p>Comece em ${nf(r(p25))}. Quase todo leilão fecha no preço inicial, então começar baixo raramente atrai disputa — você só recebe menos.</p></div></div>${extra}`;
+}
+
+/* ---------- oportunidades ---------- */
+function renderOP(){
+  const m=+$('op-m').value/100,tipo=$('op-tipo').value,showEnd=$('op-end').checked,now=Date.now();
+  $('op-mv').textContent=Math.round(m*100)+'%';
+  const rows=[];
+  if(tipo!=='gold')D.live.forEach(l=>{const[id,name,qty,tier,up,na,start,cur,bids,end]=l;const isS=qty>0;if(tipo==='stack'&&!isS||tipo==='equip'&&isS)return;
+    const ref=isS?D.stack[name]:D.equip[name+'|'+tier];if(!ref)return;const fair=isS?ref[1]*qty:ref[1];const max=Math.floor(fair*0.9/(1+m));const lucro=Math.round(fair*0.9-cur);
+    if(cur>max)return;if(!showEnd&&end<=now)return;
+    rows.push({id,label:`${isS?nf(qty)+'x ':''}${cap(name)}${isS?'':badge(tier)}${up?` <span class="note">+${up}</span>`:''}`,cur,fair,max,lucro,bids,end,n:ref[0]});});
+  if(tipo==='all'||tipo==='gold'){const gm=D.gold[1];D.goldLive.forEach(l=>{const[id,amt,start,cur,bids,end]=l;const fair=amt/1e8*gm;const max=Math.floor(fair/(1+m));if(cur>max)return;if(!showEnd&&end<=now)return;
+    rows.push({id,label:`${kk(amt)} de gold <span class="note">(${nf(cur/(amt/1e8),2)}/100kk)</span>`,cur,fair:Math.round(fair),max,lucro:Math.round(fair-cur),bids,end,n:D.gold[0]});});}
+  rows.sort((a,b)=>b.lucro-a.lucro);
+  const anyOpen=D.live.some(l=>l[9]>now)||D.goldLive.some(l=>l[5]>now);
+  $('op-warn').innerHTML=anyOpen?'':`<div class="warn">Todos os anúncios desta coleta já encerraram. Vá em <a href="#atualizar">Atualizar dados</a> para pegar os anúncios de agora — enquanto isso, marque “mostrar já encerrados” para ver como era.</div>`;
+  $('op-tbl').innerHTML=`<thead><tr><th>#</th><th>Item</th><th class="n">Lance atual</th><th class="n">Valor normal</th><th class="n">Lance máximo</th><th class="n">Lucro se pagar o atual</th><th class="n">Lances</th><th class="n">Termina</th></tr></thead><tbody>`+
+    (rows.length?rows.map(r=>`<tr><td class="note">${r.id}</td><td>${r.label}</td><td class="n">${nf(r.cur)}</td><td class="n">${nf(r.fair)}</td><td class="n"><b style="color:var(--gold2)">${nf(r.max)}</b></td><td class="n up">+${nf(r.lucro)}</td><td class="n">${r.bids}</td><td class="n">${left(r.end)}</td></tr>`).join(''):`<tr><td colspan="8" class="empty">Nada abaixo do lance máximo com esses filtros.</td></tr>`)+'</tbody>';
+}
+
+/* ---------- histórico ---------- */
+function renderHI(){
+  const m=D.meta,g=goldNow();
+  const eqVol=Object.values(D.equip).reduce((s,v)=>s+v[5],0);
+  $('hi-stats').innerHTML=[
+    ['Vendas fechadas',nf(m.vendas),`${dd(m.days[0])} a ${dd(m.days[m.days.length-1])}`],
+    ['Coins movimentados',nf(m.coins),'soma dos lances vencedores'],
+    ['Gold negociado',nf(D.gold[0])+' leilões',`${nf(D.gold[4])} coins · mediana ${nf(D.gold[1],2)}/100kk`],
+    ['Anúncios ativos',m.ativos?nf(m.ativos):'—','no momento da coleta']
+  ].map(s=>`<div class="card stat"><div class="k">${s[0]}</div><div class="v">${s[1]}</div><div class="s">${s[2]}</div></div>`).join('');
+  lineChart($('hi-gold'),m.days.map(dd),D.gold[6],v=>nf(v,2));
+  const opts=[['__gold','Gold (coins por 100kk)']].concat(Object.entries(D.stack).filter(([k,v])=>v[0]>=10).sort((a,b)=>b[1][4]-a[1][4]).map(([k])=>[k,cap(k)]));
+  $('hi-sel').innerHTML=opts.map(o=>`<option value="${esc(o[0])}">${o[1]}</option>`).join('');
+  const draw=()=>{const k=$('hi-sel').value,h=k==='__gold'?D.gold[5]:D.stack[k][6],c=k==='__gold'?D.gold[7]:D.stack[k][8];const mm=minmax(h,c);
+    const small=k!=='__gold'&&D.stack[k][1]<1;const vals=small?h.map(v=>v==null?null:v*1000):h;
+    barChart($('hi-hour'),BLK.map(b=>b.replace('–','-')),vals,v=>nf(v,v<10?2:0)+(small?' /1.000':''),mm?mm.lo[1]:-1);};
+  $('hi-sel').onchange=draw;draw();
+  const tbl=()=>{const q=$('hi-q').value.trim().toLowerCase(),t=$('hi-t').value;const rows=[];
+    if(t!=='equip')Object.entries(D.stack).forEach(([k,v])=>{if(q&&!k.includes(q))return;rows.push([cap(k),'Consumível',v[0],unitTxt(v[1]),unitTxt(v[2])+' – '+unitTxt(v[3]),v[4]]);});
+    if(t!=='stack')Object.entries(D.equip).forEach(([k,v])=>{const[n,tt]=k.split('|');if(q&&!n.includes(q))return;rows.push([cap(n)+badge(+tt),'Equipamento',v[0],nf(v[1])+' coins',nf(v[2])+' – '+nf(v[3]),v[5]]);});
+    rows.sort((a,b)=>b[5]-a[5]);
+    $('hi-tbl').innerHTML=`<thead><tr><th>Item</th><th>Tipo</th><th class="n">Vendas</th><th class="n">Mediana</th><th class="n">Faixa normal</th><th class="n">Coins girados</th></tr></thead><tbody>`+
+      (rows.length?rows.map(r=>`<tr><td>${r[0]}</td><td class="note">${r[1]}</td><td class="n">${nf(r[2])}</td><td class="n">${r[3]}</td><td class="n">${r[4]}</td><td class="n">${nf(r[5])}</td></tr>`).join(''):'<tr><td colspan="6" class="empty">Nenhum item encontrado.</td></tr>')+'</tbody>';};
+  $('hi-q').oninput=tbl;$('hi-t').onchange=tbl;tbl();
+}
+
+/* ---------- dados publicados ---------- */
+const store={months:{},state:'loading'};
+const dayOf=t=>new Date(t-3*3600e3).toISOString().slice(0,10);
+const curMonth=()=>dayOf(Date.now()).slice(0,7);
+function monthName(m){const[y,mo]=m.split('-').map(Number);const n=new Date(y,mo-1,1).toLocaleString('pt-BR',{month:'long'});return n[0].toUpperCase()+n.slice(1)+'/'+y;}
+const getJson=async u=>{const r=await fetch(u,{cache:'no-cache'});if(!r.ok)throw new Error(u+' '+r.status);return r.json();};
+async function loadMonths(){
+  try{const idx=await getJson('data/meses/index.json');
+    const all=await Promise.all(idx.map(m=>getJson(`data/meses/${m.mes}.json`).catch(()=>null)));
+    all.filter(Boolean).forEach(m=>store.months[m.mes]=m);store.state='ok';}
+  catch(e){store.state=Object.keys(store.months).length?'ok':'empty';}
+  if(D)renderMeses();
+}
+async function loadData(){
+  try{D=await getJson('data/atual.json');$('loading').style.display='none';renderAll();}
+  catch(e){$('loading').innerHTML='Ainda não há dados publicados — a primeira coleta acontece em até 6 horas depois que o site entra no ar.';}
+}
+
+function periodOf(key){
+  if(key==='agora')return{label:'Agora (últimos 7 dias)',stack:D.stack,equip:D.equip,gold:D.gold,goldNow:goldNow().last,vendas:D.meta.vendas,coins:D.meta.coins};
+  const mo=store.months[key];if(!mo)return null;const gd=Object.values(mo.sum.goldDaily||{});
+  return{label:monthName(key),stack:mo.sum.stack,equip:mo.sum.equip,gold:mo.sum.gold,goldNow:mo.sum.gold?mo.sum.gold[1]:null,vendas:mo.vendas,coins:mo.coins,mo};
+}
+function renderMeses(){
+  const st=$('me-status'),body=$('me-body');if(!st)return;
+  const keys=Object.keys(store.months).sort().reverse();
+  if(store.state==='loading'){st.innerHTML='<div class="card empty">Carregando os meses…</div>';body.style.display='none';return;}
+  if(!keys.length){st.innerHTML='<div class="card empty">Nenhum mês salvo ainda. O primeiro mês aparece aqui depois da primeira coleta.</div>';body.style.display='none';return;}
+  st.innerHTML='';body.style.display='';
+  const lab=k=>{const mo=store.months[k];return`${monthName(k)} · ${mo.fechado?'fechado':'em andamento'} (${mo.dias.length} ${mo.dias.length===1?'dia':'dias'})`;};
+  const a=$('me-a'),b=$('me-b'),va=a.value,vb=b.value;
+  a.innerHTML=`<option value="agora">Agora (últimos 7 dias)</option>`+keys.map(k=>`<option value="${k}">${lab(k)}</option>`).join('');
+  b.innerHTML=keys.map(k=>`<option value="${k}">${lab(k)}</option>`).join('');
+  a.value=va&&[...a.options].some(o=>o.value===va)?va:'agora';
+  const prev=keys.find(k=>k!==curMonth())||keys[0];
+  b.value=vb&&[...b.options].some(o=>o.value===vb)?vb:prev;
+  drawMeses();
+}
+const g2=x=>x==null?'—':x.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+function pct(x,y){return x==null||y==null||!y?null:(x/y-1)*100;}
+function varTxt(v){if(v==null)return'<span class="note">—</span>';const c=Math.abs(v)<1?'':v>0?'up':'down';return`<span class="${c}">${v>0?'▲ +':v<0?'▼ ':''}${nf(v,1)}%</span>`;}
+function drawMeses(){
+  const A=periodOf($('me-a').value),B=periodOf($('me-b').value);if(!A||!B)return;
+  $('me-stats').innerHTML=[
+    ['Gold (coins por 100kk)',g2(A.goldNow),`${B.label}: ${g2(B.goldNow)} · ${varTxt(pct(A.goldNow,B.goldNow))}`],
+    ['Vendas',nf(A.vendas),`${B.label}: ${nf(B.vendas)}`],
+    ['Coins movimentados',nf(A.coins),`${B.label}: ${nf(B.coins)}`],
+    ['Período',A.label,`comparado com ${B.label}`]
+  ].map(s=>`<div class="card stat"><div class="k">${s[0]}</div><div class="v" style="font-size:20px">${s[1]}</div><div class="s">${s[2]}</div></div>`).join('');
+  const q=$('me-q').value.trim().toLowerCase(),t=$('me-t').value,o=$('me-o').value,rows=[];
+  if(t!=='equip')Object.entries(A.stack||{}).forEach(([k,v])=>{if(q&&!k.includes(q))return;const w=(B.stack||{})[k];const small=v[1]<1;const f=x=>x==null?'—':small?nf(x*1000,0)+' /1.000':nf(x,x<10?2:0);
+    rows.push({label:cap(k),tipo:'Consumível',a:f(v[1]),b:w?f(w[1]):'—',v:w?pct(v[1],w[1]):null,na:v[0],nb:w?w[0]:0,vol:v[4]});});
+  if(t!=='stack')Object.entries(A.equip||{}).forEach(([k,v])=>{const[n,tt]=k.split('|');if(q&&!n.includes(q))return;const w=(B.equip||{})[k];
+    rows.push({label:cap(n)+badge(+tt),tipo:'Equipamento',a:nf(v[1]),b:w?nf(w[1]):'—',v:w?pct(v[1],w[1]):null,na:v[0],nb:w?w[0]:0,vol:v[5]});});
+  const key={var:r=>r.v==null?-1:Math.abs(r.v),up:r=>r.v==null?-1e9:r.v,down:r=>r.v==null?-1e9:-r.v,vol:r=>r.vol}[o];
+  rows.sort((x,y)=>key(y)-key(x));
+  $('me-tbl').innerHTML=`<thead><tr><th>Item</th><th>Tipo</th><th class="n">${esc(A.label)}</th><th class="n">${esc(B.label)}</th><th class="n">Variação</th><th class="n">Vendas</th></tr></thead><tbody>`+
+    (rows.length?rows.slice(0,400).map(r=>`<tr><td>${r.label}</td><td class="note">${r.tipo}</td><td class="n">${r.a}</td><td class="n">${r.b}</td><td class="n">${varTxt(r.v)}</td><td class="n note">${nf(r.na)} / ${nf(r.nb)}</td></tr>`).join(''):'<tr><td colspan="6" class="empty">Nenhum item encontrado.</td></tr>')+'</tbody>';
+}
+
+/* ---------- personagem ---------- */
+const ATTR={1:['Weapon Attack',1,1],2:['Defense',2,0],3:['Armor',1,0],4:['Onslaught',.5,1],5:['Crit Chance',.35,1],6:['Crit Damage',1.5,1],7:['Life Leech',.4,1],8:['Mana Leech',.4,1],9:['Loot',1,1],10:['Exp',1,1],11:['Protect All',.17,1],12:['Protect Fire',.5,1],13:['Protect Earth',.5,1],14:['Protect Energy',.5,1],15:['Protect Ice',.5,1],16:['Protect Holy',.5,1],17:['Protect Death',.5,1],18:['Attack Speed',.5,1],19:['Spell Damage',.5,1],20:['Spell Healing',.5,1],21:['Max HP',.5,1],22:['Max Mana',.5,1],23:['HP Regen',.08,1],24:['MP Regen',.08,1],25:['Execute',.25,1],26:['Frenzy',.25,1],27:['Fire Damage',.5,1],28:['Earth Damage',.5,1],29:['Energy Damage',.5,1],30:['Ice Damage',.5,1],31:['Holy Damage',.5,1],32:['Death Damage',.5,1]};
+const SLOT={helmet:'Cabeça',head:'Cabeça',armor:'Peito',body:'Peito',legs:'Pernas',boots:'Pés',feet:'Pés',weapon:'Arma',shield:'Mão secundária',ring:'Anel',amulet:'Amuleto',necklace:'Amuleto',backpack:'Mochila',ammo:'Munição',quiver:'Aljava',trinket:'Trinket'};
+const VOC={sorcerer:'Sorcerer',druid:'Druid',knight:'Knight',paladin:'Paladin',monk:'Monk'};
+function attrTxt(a){const d=ATTR[a.id];if(!d)return`Atributo ${a.id} (nv ${a.level})`;const v=Math.round(d[1]*a.level*100)/100;return`${d[0]} +${nf(v,2)}${d[2]?'%':''}`;}
+function setupPersonagem(){
+  $('pe-form').addEventListener('submit',e=>{e.preventDefault();buscarPersonagem($('pe-nick').value);});
+  try{const n=localStorage.getItem('idleKnowNick');if(n)$('pe-nick').value=n;}catch(e){}
+}
+async function buscarPersonagem(nick){
+  nick=nick.trim();const out=$('pe-out');if(nick.length<2){out.innerHTML='<div class="card empty">Digite pelo menos 2 letras.</div>';return;}
+  out.innerHTML='<div class="card empty">Buscando no Baiak Idle…</div>';
+  let r;try{const res=await fetch('api/personagem?nick='+encodeURIComponent(nick));r=await res.json();if(!res.ok)throw new Error(r.erro||res.status);}
+  catch(e){out.innerHTML=`<div class="warn">${esc(e.message||'Não consegui buscar agora.')}</div>`;return;}
+  if(!r.perfil){const sg=r.sugestoes||[];out.innerHTML=`<div class="card">${sg.length?'<h3>Não achei esse nick exato. Você quis dizer:</h3>'+sg.map(c=>`<button class="ghost" style="margin:4px" data-n="${esc(c.name)}">${esc(c.name)} <span class="note">· ${esc(VOC[c.vocation]||c.vocation||'')} ${c.level?nf(c.level):''}</span></button>`).join(''):'<div class="empty">Nenhum personagem encontrado com esse nome.</div>'}</div>`;
+    out.querySelectorAll('button[data-n]').forEach(b=>b.onclick=()=>{$('pe-nick').value=b.dataset.n;buscarPersonagem(b.dataset.n);});return;}
+  try{localStorage.setItem('idleKnowNick',nick);}catch(e){}
+  const p=r.perfil,sk=p.skills||{};let total=0,comPreco=0;
+  const eq=(p.equipment||[]).map(it=>{const ref=D&&D.equip?D.equip[it.name+'|'+(it.tier||0)]:null;if(ref){total+=ref[1];comPreco++;}
+    return`<tr><td class="note">${esc(SLOT[it.slot]||it.slot)}</td><td>${esc(cap(it.name))}${badge(it.tier||0)}${it.upLevel?` <span class="note">+${it.upLevel}</span>`:''}${it.ftier?` <span class="note">· forja ${it.ftier}</span>`:''}</td><td class="note">${(it.attrs||[]).map(attrTxt).join(' · ')||'—'}</td><td class="n">${ref?nf(ref[1])+' <span class="note">('+nf(ref[2])+'–'+nf(ref[3])+')</span>':'<span class="note">sem vendas</span>'}</td></tr>`;}).join('');
+  out.innerHTML=`<div class="grid g4">
+    <div class="card stat"><div class="k">Personagem</div><div class="v" style="font-size:22px">${esc(p.name)}</div><div class="s">${esc(VOC[p.vocation]||p.vocation)} ${p.online?'· <span class="up">online</span>':'· offline'}</div></div>
+    <div class="card stat"><div class="k">Level</div><div class="v">${nf(p.level)}</div><div class="s">${nf(+p.experience)} de XP</div></div>
+    <div class="card stat"><div class="k">Skills</div><div class="s" style="font-size:13px;line-height:1.7;margin-top:6px">Magic <b>${sk.magic??'—'}</b> · Melee <b>${sk.melee??'—'}</b> · Distance <b>${sk.distance??'—'}</b><br>Fist <b>${sk.fist??'—'}</b> · Shielding <b>${sk.shielding??'—'}</b></div></div>
+    <div class="card stat"><div class="k">Set no market</div><div class="v">${comPreco?'~'+nf(total):'—'}</div><div class="s">coins somando a mediana de ${comPreco} de ${(p.equipment||[]).length} peças</div></div>
+  </div>
+  <div class="card" style="margin-top:14px"><h3>Equipamento</h3><div class="tbl" style="max-height:none"><table><thead><tr><th>Slot</th><th>Item</th><th>Atributos</th><th class="n">Valor no market</th></tr></thead><tbody>${eq||'<tr><td colspan="4" class="empty">Equipamento escondido ou vazio.</td></tr>'}</tbody></table></div>
+  <p class="note">Valor no market = mediana das vendas dos últimos 7 dias de peças com o mesmo nome e raridade (entre parênteses, a faixa normal). Atributos, upgrade e forja mudam muito o preço real.</p></div>`;
+}
+
+function renderAll(){buildItems();stamp();renderDicas();renderOP();renderHI();renderMeses();}
+const VIEWS=['dicas','personagem','quanto-pedir','oportunidades','historico','meses'];
+function route(){const h=location.hash.slice(1),v=VIEWS.includes(h)?h:'dicas';VIEWS.forEach(x=>$(x).classList.toggle('on',x===v));document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+v));}
+window.addEventListener('hashchange',route);
+['op-m','op-tipo','op-end'].forEach(id=>$(id).addEventListener('input',renderOP));
+['me-a','me-b','me-q','me-t','me-o'].forEach(id=>$(id).addEventListener('input',drawMeses));
+setupQP();setupPersonagem();route();loadData().then(loadMonths);
+setInterval(()=>{if(D&&$('oportunidades').classList.contains('on'))renderOP();},60000);
+})();
+</script>
+</body>
+</html>
