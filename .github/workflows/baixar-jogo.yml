@@ -3,6 +3,9 @@ name: Baixar código do jogo (dev)
 on:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   baixar:
     runs-on: ubuntu-latest
@@ -15,8 +18,8 @@ jobs:
           G=$(echo "$H" | grep -o 'assets/game-[A-Za-z0-9_-]*\.js' | head -1)
           echo "arquivo: $G"
           mkdir -p out && curl -sfA "$UA" "https://baiakidle.com/jogar/$G" -o out/game.js && ls -la out
-      - uses: actions/upload-artifact@v4
-        with:
-          name: game-js
-          path: out/game.js
-          retention-days: 2
+      - name: Publicar no branch dev-jogo
+        run: |
+          cd out && git init -q -b dev-jogo && git add game.js
+          git -c user.name=idle-know-bot -c user.email=idle-know-bot@users.noreply.github.com commit -qm "game.js $(date -u +%F)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}" dev-jogo
