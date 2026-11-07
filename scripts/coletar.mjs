@@ -63,6 +63,7 @@ async function main() {
   await writeJson(join(MESES, 'index.json'), [...idx.values()].sort((a, b) => b.mes.localeCompare(a.mes)));
   const nomes = new Set([...todas.filter(r => r[1] === 'i').map(r => r[2]), ...browse.filter(x => x.item).map(x => x.item.name)]);
   await imagens(nomes);
+  await dadosDoJogo();
   log('pronto');
 }
 
@@ -72,6 +73,7 @@ async function main() {
 //     com ~9.700 nomes no formato "nome":{id:N} ou nome:{id:N}.
 // Baixamos o sprite de cada item que aparece no market UMA vez e guardamos em
 // public/img/. O site usa o servidor do jogo como reserva para o resto.
+let codigoJogo = null; // reaproveitado pela extração de regras (dadosDoJogo)
 async function tabelaDoJogo() {
   const base = new URL('../../jogar/', API).href; // https://baiakidle.com/jogar/
   const html = await (await fetch(base, { headers })).text();
@@ -82,6 +84,7 @@ async function tabelaDoJogo() {
   }
   if (!game) throw new Error('não achei o game-*.js');
   const t = await (await fetch(base + game, { headers })).text();
+  codigoJogo = { arquivo: game, texto: t };
   const re = /(?:"([^"\\]+)"|([A-Za-z_$][\w$]*)):\{id:(\d+)[,}]/g, mapa = {};
   let m; while ((m = re.exec(t))) { const n = m[1] || m[2]; if (!(n in mapa)) mapa[n] = +m[3]; }
   return mapa;
@@ -109,6 +112,24 @@ async function imagens(nomes) {
     const semImg = [...nomes].filter(n => !ids[n]);
     log(`imagens: ${Object.keys(ids).length} nomes conhecidos, ${ja.size} sprites guardados (${baixadas} novos)${semImg.length ? `; sem imagem no jogo: ${semImg.slice(0, 8).join(', ')}` : ''}`);
   } catch (e) { log('imagens: não consegui atualizar agora —', e.message); }
+}
+
+// Regras do jogo para o otimizador: itens, monstros, hunts, magias, vocações…
+// Lidas do código do jogo sem executá-lo (scripts/jogo.mjs). Só regrava o
+// arquivo quando o build do jogo muda.
+async function dadosDoJogo() {
+  try {
+    if (!codigoJogo) await tabelaDoJogo();
+    const destino = join(OUT, 'jogo.json');
+    const antes = await readJson(destino, null);
+    if (antes && antes.build === codigoJogo.arquivo) { log('regras do jogo: build igual, nada a fazer'); return; }
+    const { extrair } = await import('./jogo.mjs');
+    const dados = { build: codigoJogo.arquivo, ...extrair(codigoJogo.texto) };
+    if (dados.avisos.length) log('regras do jogo: avisos —', dados.avisos.join(' | '));
+    if (!dados.magias || !dados.equipamentos || !Object.keys(dados.equipamentos).length) throw new Error('extração incompleta, mantendo o arquivo anterior');
+    await writeJson(destino, dados);
+    log(`regras do jogo: ${Object.keys(dados.equipamentos).length} equipamentos, ${Object.keys(dados.monstros).length} monstros, ${dados.hunts.length} hunts, ${dados.magias.length} magias`);
+  } catch (e) { log('regras do jogo: não consegui atualizar agora —', e.message); }
 }
 
 main().catch(e => { console.error(e); process.exit(1); });

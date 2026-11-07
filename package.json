@@ -1,0 +1,7 @@
+{
+  "name": "idle-know",
+  "private": true,
+  "dependencies": {
+    "acorn": "^8.14.0"
+  }
+}
