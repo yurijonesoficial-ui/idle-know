@@ -1,0 +1,22 @@
+name: Baixar código do jogo (dev)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  baixar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Baixar game-*.js
+        run: |
+          UA="IdleKnow/1.0 (+https://idle-know.pages.dev)"
+          H=$(curl -sfA "$UA" https://baiakidle.com/jogar/)
+          G=$(echo "$H" | grep -o 'assets/game-[A-Za-z0-9_-]*\.js' | head -1)
+          echo "arquivo: $G"
+          mkdir -p out && curl -sfA "$UA" "https://baiakidle.com/jogar/$G" -o out/game.js && ls -la out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: game-js
+          path: out/game.js
+          retention-days: 2
