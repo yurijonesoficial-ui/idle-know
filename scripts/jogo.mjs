@@ -121,11 +121,13 @@ function definicao(t, nome) {
   return null;
 }
 
+export const VERSAO = 2; // suba quando a extração mudar, para regerar o jogo.json
+
 export function extrair(t) {
-  const out = { geradoEm: new Date().toISOString(), avisos: [] };
+  const out = { versao: VERSAO, geradoEm: new Date().toISOString(), avisos: [] };
   const ctx = {};
   // helper Mr(x) -> {7 elementos: x} (usado nas árvores de talento)
-  const mr = /,([A-Za-z_$][\w$]*)=e=>\(\{physical:e,energy:e,earth:e,fire:e,ice:e,holy:e,death:e\}\)/.exec(t);
+  const mr = /(?:const |let |var |,)([A-Za-z_$][\w$]*)=e=>\(\{physical:e,energy:e,earth:e,fire:e,ice:e,holy:e,death:e\}\)/.exec(t);
   if (mr) ctx.mr = mr[1];
 
   const tabela = (chave, ancora) => {

@@ -131,6 +131,7 @@ footer{max-width:1180px;margin:0 auto;padding:0 20px 34px;color:var(--muted);fon
     <nav id="nav" aria-label="Seções">
       <a href="#dicas">Dicas</a>
       <a href="#personagem">Personagem</a>
+      <a href="#otimizador">Otimizador</a>
       <a href="#quanto-pedir">Quanto pedir</a>
       <a href="#oportunidades">Oportunidades</a>
       <a href="#historico">Histórico</a>
@@ -241,12 +242,33 @@ footer{max-width:1180px;margin:0 auto;padding:0 20px 34px;color:var(--muted);fon
     <button type="submit">Buscar</button>
   </form>
   <div id="pe-out"><div class="card empty">Os dados vêm direto do Baiak Idle e são públicos (os mesmos da página do personagem no site do jogo).</div></div>
-  <div class="card soon" style="margin-top:14px"><h3>Em breve</h3><p class="note" style="margin:0">Otimizador de build · catálogo de hunts · planejador de party.</p></div>
+  <div class="card soon" style="margin-top:14px"><h3>Em breve</h3><p class="note" style="margin:0">Catálogo de hunts · planejador de party.</p></div>
+</section>
+
+<section id="otimizador">
+  <h2>Otimizador de build</h2>
+  <p class="lead">Escolha o personagem, a hunt e o que quer melhorar. O otimizador testa cada peça do jogo no lugar da sua e mostra o que mais rende, quanto vale cada atributo e cada imbuement.</p>
+  <form id="ot-form" class="ctrl" autocomplete="off" style="flex-wrap:wrap">
+    <input id="ot-nick" placeholder="Nick do personagem…" style="flex:1 1 220px;max-width:300px" maxlength="30">
+    <select id="ot-hunt" style="flex:1 1 220px;max-width:300px" aria-label="Hunt"><option value="">Carregando hunts…</option></select>
+    <select id="ot-modo" aria-label="Objetivo">
+      <option value="dano">Mais dano</option><option value="xp">Mais XP</option><option value="defesa">Mais defesa</option><option value="hp">Mais vida</option><option value="loot">Mais loot</option>
+    </select>
+    <input id="ot-orc" type="number" min="0" step="1" placeholder="Orçamento por peça (coins)" style="flex:0 1 220px" aria-label="Orçamento por peça em coins">
+    <button type="submit">Otimizar</button>
+  </form>
+  <details class="card dobra" data-k="ot-painel" style="margin-bottom:14px"><summary><h3>Deixar mais preciso (opcional): cole o painel “Bônus” do jogo</h3><svg class="seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="dobra-corpo">
+    <p class="note" style="margin-top:0">O site do jogo só mostra o equipamento. Rift Tree, addons, proficiência, auras e especialização ficam de fora. No jogo, abra <b>Skills</b>, selecione do “Magic/Melee” até o fim do bloco <b>Bônus</b>, copie e cole aqui. Fica salvo neste navegador.</p>
+    <textarea id="ot-painel" rows="6" style="width:100%;resize:vertical" placeholder="Magic&#10;124 +63&#10;…&#10;Dano de magia&#10;+167.106%&#10;…"></textarea>
+    <div class="ctrl" style="margin-top:10px"><label class="note" style="margin:0">Especialização <select id="ot-spec"><option value="">Nenhuma / não sei</option></select></label> <span id="ot-painel-st" class="note" style="margin:0"></span></div>
+  </div></details>
+  <div id="ot-out"><div class="card empty">Digite o nick, escolha a hunt e o objetivo.</div></div>
 </section>
 
 </main>
 <footer id="foot"></footer>
 
+<script src="motor.js"></script>
 <script>
 (function(){
 const RAR=['Comum','Incomum','Raro','Épico','Lendário','Mítico'];
@@ -507,7 +529,79 @@ async function buscarPersonagem(nick){
 }
 
 function renderAll(){buildItems();stamp();renderDicas();renderOP();renderHI();renderMeses();}
-const VIEWS=['dicas','personagem','quanto-pedir','oportunidades','historico','meses'];
+
+/* ---------- otimizador ---------- */
+let JOGO=null,jogoP=null;
+function carregarJogo(){if(!jogoP)jogoP=fetch('data/jogo.json').then(r=>{if(!r.ok)throw new Error('regras do jogo indisponíveis');return r.json();}).then(j=>{JOGO=j;return j;});return jogoP;}
+const SLOT_ORD=['weapon','shield','helmet','armor','legs','boots','amulet','ring','trinket'];
+const MODO_TXT={dano:'dano por segundo',xp:'XP por hora',defesa:'dano recebido',hp:'vida máxima',loot:'loot por hora'};
+function pct(x,d=1){const v=x*100;return(v>0?'+':'')+nf(v,d)+'%';}
+function precoEq(n,t){const e=D&&D.equip?D.equip[n+'|'+(t||0)]:null;return e?e[1]:null;}
+function setupOtimizador(){
+  $('ot-form').addEventListener('submit',e=>{e.preventDefault();otimizarAgora();});
+  try{const n=localStorage.getItem('idleKnowNick');if(n)$('ot-nick').value=n;const pn=localStorage.getItem('idleKnowPainel');if(pn)$('ot-painel').value=pn;const sp=localStorage.getItem('idleKnowSpec');if(sp)$('ot-spec').dataset.v=sp;}catch(e){}
+  $('ot-painel').addEventListener('input',()=>{try{localStorage.setItem('idleKnowPainel',$('ot-painel').value);}catch(e){}statusPainel();});
+  $('ot-spec').addEventListener('change',()=>{try{localStorage.setItem('idleKnowSpec',$('ot-spec').value);}catch(e){}});
+  window.addEventListener('hashchange',()=>{if(location.hash==='#otimizador')prepararOt();});if(location.hash==='#otimizador')prepararOt();
+}
+function statusPainel(){const t=$('ot-painel').value.trim();if(!t){$('ot-painel-st').textContent='';return;}const L=IdleKnowMotor.lerPainel(t);$('ot-painel-st').textContent=L.campos?`Li ${L.campos} campos do painel.`:'Não reconheci o painel; confira se copiou os nomes e os valores.';}
+async function prepararOt(){
+  try{const j=await carregarJogo();
+    if($('ot-hunt').options.length<=1){const hs=[...j.hunts].filter(h=>h.avail!=='off').sort((a,b)=>a.minLevel-b.minLevel);$('ot-hunt').innerHTML=hs.map(h=>`<option value="${esc(h.id)}">${esc(h.name)} · lvl ${nf(h.minLevel)}+</option>`).join('');try{const h=localStorage.getItem('idleKnowHunt');if(h)$('ot-hunt').value=h;}catch(e){}}
+    if($('ot-spec').options.length<=1){$('ot-spec').innerHTML='<option value="">Nenhuma / não sei</option>'+Object.values(j.especializacoes||{}).map(s=>`<option value="${esc(s.key)}">${esc(s.name)} (${esc(VOC[s.voc]||s.voc)})</option>`).join('');if($('ot-spec').dataset.v)$('ot-spec').value=$('ot-spec').dataset.v;}
+    statusPainel();
+  }catch(e){$('ot-out').innerHTML=`<div class="warn">${esc(e.message)}</div>`;}
+}
+let OT_MAGIAS=null;
+async function otimizarAgora(){
+  const out=$('ot-out'),nick=$('ot-nick').value.trim();if(nick.length<2){out.innerHTML='<div class="card empty">Digite o nick do personagem.</div>';return;}
+  out.innerHTML='<div class="card empty">Buscando o personagem e calculando…</div>';
+  let j,r;try{j=await carregarJogo();const res=await fetch('api/personagem?nick='+encodeURIComponent(nick));r=await res.json();if(!res.ok)throw new Error(r.erro||res.status);}catch(e){out.innerHTML=`<div class="warn">${esc(e.message||'Não consegui buscar agora.')}</div>`;return;}
+  if(!r.perfil){out.innerHTML='<div class="card empty">Não achei esse nick. Confira na aba Personagem.</div>';return;}
+  try{localStorage.setItem('idleKnowNick',nick);localStorage.setItem('idleKnowHunt',$('ot-hunt').value);}catch(e){}
+  const pf=r.perfil,M=IdleKnowMotor;
+  const p={vocacao:pf.vocation,level:pf.level,skills:Object.assign({},pf.skills),equipamento:(pf.equipment||[]).map(e=>({slot:e.slot,name:e.name,tier:e.tier||0,upLevel:e.upLevel||0,ftier:e.ftier||0,attrs:e.attrs||[]})),especializacao:$('ot-spec').value||null};
+  // ficha: painel colado (total do jogo) ou só os itens
+  const L=$('ot-painel').value.trim()?M.lerPainel($('ot-painel').value):null;let ficha,fonte;
+  if(L&&L.campos>=5){ficha=L.ficha;if(L.skillsBase.magic)p.skills.magic=L.skillsBase.magic;const fi=M.fichaDosItens(j,p.equipamento);for(const e in fi.magicEl)ficha.magicEl[e]+=fi.magicEl[e];fonte='painel';}
+  else{ficha=M.fichaDosItens(j,p.equipamento);fonte='itens';}
+  p.ficha=ficha;
+  const huntId=$('ot-hunt').value,modo=$('ot-modo').value,orc=+$('ot-orc').value||0;
+  const disp=M.magiasDisponiveis(j,p);if(!OT_MAGIAS||OT_MAGIAS.voc!==p.vocacao)OT_MAGIAS={voc:p.vocacao,set:new Set(disp.map(m=>m.words))};
+  const opts={magias:OT_MAGIAS.set,orcamento:orc||null,preco:precoEq};
+  await new Promise(res=>setTimeout(res,20));
+  let o;try{o=M.otimizar(j,p,huntId,modo,opts);}catch(e){out.innerHTML=`<div class="warn">Erro no cálculo: ${esc(e.message)}</div>`;return;}
+  const a=o.atual,hunt=j.hunts.find(h=>h.id===huntId)||{},atual=Object.fromEntries(p.equipamento.map(e=>[(j.equipamentos[e.name]||{}).slot||e.slot,e]));
+  const linhasSlot=SLOT_ORD.filter(s=>o.sugestoes[s]).map(s=>{const l=o.sugestoes[s].filter(x=>x.ganho>0.0005).slice(0,3);const cur=atual[s];
+    return`<tr><td class="note">${esc(SLOT[s]||s)}</td><td>${cur?itm(cur.name,esc(cap(cur.name))+badge(cur.tier||0)):'<span class="note">vazio</span>'}</td><td>${l.length?l.map(x=>`<div style="margin:2px 0">${itm(x.nome,esc(cap(x.nome)))} <b class="up">${pct(x.ganho)}</b>${x.preco?` <span class="note">· ~${nf(x.preco)} coins</span>`:''}</div>`).join(''):'<span class="note">a sua já é a melhor base</span>'}</td></tr>`;}).join('');
+  const atr=o.atributos.filter(x=>x.ganho>0).slice(0,8).map(x=>`<tr><td>${esc(x.nome)}</td><td class="n note">+${nf(x.porNivel,2)}${x.percent?'%':''} por nível</td><td class="n"><b class="up">${pct(x.ganho,2)}</b></td></tr>`).join('');
+  const imb=o.imbuements.filter(x=>x.ganho>0).slice(0,6).map(x=>`<tr><td>${esc(x.nome)} <span class="note">· ${esc(x.cat)}</span></td><td class="n"><b class="up">${pct(x.ganho,2)}</b></td></tr>`).join('');
+  const mags=a.porMagia.map(x=>`<tr><td>${esc(x.nome)}${x.alvos>1?` <span class="note">· ${x.alvos} alvos</span>`:''}</td><td class="n">${nf(Math.round(x.porAlvo))}</td><td class="n">${nf(x.usos)}</td><td class="n"><b>${nf(Math.round(x.dano))}</b>/s</td></tr>`).join('');
+  const chk=disp.map(m=>`<label class="note" style="margin:0 12px 6px 0;display:inline-flex;gap:6px;align-items:center"><input type="checkbox" data-w="${esc(m.words)}" ${OT_MAGIAS.set.has(m.words)?'checked':''}>${esc(m.name)}</label>`).join('');
+  out.innerHTML=`${fonte==='itens'?'<div class="warn">Calculando só com o equipamento. Para ficar preciso, cole o painel “Bônus” do jogo acima (Rift Tree, addons, proficiência e auras não são públicos).</div>':''}
+  <div class="grid g4">
+    <div class="card stat"><div class="k">${esc(pf.name)}</div><div class="v" style="font-size:22px">${esc(VOC[pf.vocation]||pf.vocation)} ${nf(pf.level)}</div><div class="s">${esc(hunt.name||'')} · objetivo: ${esc(MODO_TXT[modo])}</div></div>
+    <div class="card stat"><div class="k">Dano por segundo</div><div class="v">${nf(Math.round(a.dps))}</div><div class="s">estimado, sozinho, na hunt escolhida</div></div>
+    <div class="card stat"><div class="k">Dano recebido</div><div class="v">${nf(Math.round(a.recebido))}/s</div><div class="s">se um monstro da hunt focar você</div></div>
+    <div class="card stat"><div class="k">Vida</div><div class="v">${nf(Math.round(a.hp))}</div><div class="s">level × vocação × HP máximo (sem addons)</div></div>
+  </div>
+  <div class="grid g2" style="margin-top:14px">
+    <div class="card"><h3>Troque estas peças</h3><p class="note" style="margin-top:0">Cada linha testa a base nova com a <b>mesma raridade, upgrade, forja e atributos</b> da sua peça atual. O preço é a mediana do market nessa raridade.</p><div class="tbl" style="max-height:none"><table><thead><tr><th>Slot</th><th>Sua peça</th><th>Melhores trocas (${esc(MODO_TXT[modo])})</th></tr></thead><tbody>${linhasSlot}</tbody></table></div></div>
+    <div>
+      <div class="card"><h3>Atributos que mais rendem</h3><p class="note" style="margin-top:0">Ganho de +1 nível do atributo. Use para escolher o que rolar ou refinar.</p><div class="tbl" style="max-height:none"><table><tbody>${atr||'<tr><td class="note">Nenhum atributo melhora esse objetivo.</td></tr>'}</tbody></table></div></div>
+      <div class="card" style="margin-top:14px"><h3>Imbuements (tier 3)</h3><div class="tbl" style="max-height:none"><table><tbody>${imb||'<tr><td class="note">—</td></tr>'}</tbody></table></div></div>
+    </div>
+  </div>
+  <details class="card dobra" data-k="ot-rot" style="margin-top:14px" open><summary><h3>Rotação de magias e dano</h3><svg class="seta" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary><div class="dobra-corpo">
+    <p class="note" style="margin-top:0">A cada 2 s o personagem usa a magia ou runa disponível de maior dano (contando ${IdleKnowMotor.CAL.alvosArea} alvos nas de área). Desmarque o que você não usa e clique em Otimizar de novo.</p>
+    <div id="ot-chk" style="margin-bottom:10px">${chk}</div>
+    <div class="tbl" style="max-height:none"><table><thead><tr><th>Magia</th><th class="n">Dano por alvo</th><th class="n">Usos em 2 min</th><th class="n">Dano/s</th></tr></thead><tbody>${mags}</tbody></table></div>
+  </div></details>
+  <p class="note">Como funciona: as fórmulas das magias, dos itens, dos atributos, da forja e dos monstros vêm do próprio código do jogo. O que roda só no servidor (crítico real, fatal, ataque básico e um multiplicador das magias) foi medido golpe a golpe no jogo. Os valores absolutos são estimativas. A comparação entre peças e atributos é o que importa.</p>`;
+  out.querySelectorAll('#ot-chk input').forEach(c=>c.onchange=()=>{c.checked?OT_MAGIAS.set.add(c.dataset.w):OT_MAGIAS.set.delete(c.dataset.w);});
+}
+
+const VIEWS=['dicas','personagem','otimizador','quanto-pedir','oportunidades','historico','meses'];
 function route(){const h=location.hash.slice(1),v=VIEWS.includes(h)?h:'dicas';VIEWS.forEach(x=>$(x).classList.toggle('on',x===v));document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+v));}
 window.addEventListener('hashchange',()=>{route();window.scrollTo(0,0);});
 window.addEventListener('load',()=>window.scrollTo(0,0));
@@ -518,7 +612,7 @@ document.addEventListener('toggle',e=>{const d=e.target;if(!(d.matches&&d.matche
 $('tema').addEventListener('click',()=>{const n=document.documentElement.dataset.tema==='claro'?'escuro':'claro';document.documentElement.dataset.tema=n;try{localStorage.setItem('idleKnowTema',n);}catch(e){}});
 ['op-m','op-tipo','op-end'].forEach(id=>$(id).addEventListener('input',renderOP));
 ['me-a','me-b','me-q','me-t','me-o'].forEach(id=>$(id).addEventListener('input',drawMeses));
-setupQP();setupPersonagem();route();loadData().then(loadMonths);
+setupQP();setupPersonagem();setupOtimizador();route();loadData().then(loadMonths);
 setInterval(()=>{if(D&&$('oportunidades').classList.contains('on'))renderOP();},60000);
 })();
 </script>

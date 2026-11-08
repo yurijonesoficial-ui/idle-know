@@ -122,8 +122,8 @@ async function dadosDoJogo() {
     if (!codigoJogo) await tabelaDoJogo();
     const destino = join(OUT, 'jogo.json');
     const antes = await readJson(destino, null);
-    if (antes && antes.build === codigoJogo.arquivo) { log('regras do jogo: build igual, nada a fazer'); return; }
-    const { extrair } = await import('./jogo.mjs');
+    const { extrair, VERSAO } = await import('./jogo.mjs');
+    if (antes && antes.build === codigoJogo.arquivo && antes.versao === VERSAO) { log('regras do jogo: build igual, nada a fazer'); return; }
     const dados = { build: codigoJogo.arquivo, ...extrair(codigoJogo.texto) };
     if (dados.avisos.length) log('regras do jogo: avisos —', dados.avisos.join(' | '));
     if (!dados.magias || !dados.equipamentos || !Object.keys(dados.equipamentos).length) throw new Error('extração incompleta, mantendo o arquivo anterior');
